@@ -1,61 +1,117 @@
-import { Card } from "primereact/card";
-import { FileUpload } from "primereact/fileupload";
+import { useRef, type ChangeEvent } from "react";
+import { Badge, IconButton, SectionCard } from "../../../../components";
 
-interface VesselDocumentsProps {
-    documents: File[];
-    setDocuments: (value: File[]) => void;
+export interface VesselDocumentsProps {
+  documents: File[];
+  onDocumentsChange: (documents: File[]) => void;
 }
 
 export function VesselDocuments({
-    documents,
-    setDocuments
+  documents,
+  onDocumentsChange,
 }: VesselDocumentsProps) {
-    return (
-        <Card className="vessel-card vessel-card--upload">
-            <div className="vessel-documents-card">
-                <div className="documents-header">
-                    <i className="pi pi-folder" />
-                    <h2>Documentação Técnica</h2>
+  const docInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDocumentUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const filesArray = Array.from(event.target.files);
+      onDocumentsChange([...documents, ...filesArray]);
+      event.target.value = "";
+    }
+  };
+
+  const removeDocument = (indexToRemove: number) => {
+    onDocumentsChange(documents.filter((_, index) => index !== indexToRemove));
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes >= 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(1).replace(".", ",")} MB`;
+    }
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  };
+
+  return (
+    <SectionCard
+      title="Documentação técnica"
+      subtitle="Certificado de classe, plano geral, inscrição e outros documentos"
+      icon="pi-file"
+    >
+      <div className="vessel-docs-container">
+        <input
+          type="file"
+          multiple
+          accept=".pdf,.dwg,image/*"
+          ref={docInputRef}
+          onChange={handleDocumentUpload}
+          className="vessel-hidden-input"
+        />
+
+        <button
+          type="button"
+          className="vessel-dropzone"
+          onClick={() => docInputRef.current?.click()}
+        >
+          <span className="vessel-dropzone__icon-box">
+            <i className="pi pi-upload" aria-hidden="true" />
+          </span>
+          <span className="vessel-dropzone__title">
+            Arraste arquivos ou clique para enviar
+          </span>
+          <span className="vessel-dropzone__hint">
+            PDF, DWG ou imagem · metadados registrados no cadastro
+          </span>
+        </button>
+
+        <div className="vessel-doc-list">
+          {documents.map((doc, index) => (
+            <div key={`${doc.name}-${index}`} className="vessel-doc-item">
+              <div className="vessel-doc-item__info">
+                <span className="vessel-doc-item__icon-box">
+                  <i className="pi pi-file" aria-hidden="true" />
+                </span>
+                <div className="vessel-doc-item__meta">
+                  <span className="vessel-doc-item__name" title={doc.name}>
+                    {doc.name}
+                  </span>
+                  <span className="vessel-doc-item__sub">
+                    {formatFileSize(doc.size)} · pronto para envio
+                  </span>
                 </div>
-
-                <p className="documents-description">
-                    Anexe o certificado de classe, plano geral, inscrição e outros documentos.
-                </p>
-
-                <FileUpload
-                    name="documents"
-                    className="documents-upload"
-                    multiple
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    auto={false}
-                    customUpload
-                    chooseOptions={{
-                        label: "Inserir Arquivos",
-                        icon: "pi pi-download",
-                    }}
-                    uploadOptions={{
-                        style: { display: "none" }
-                    }}
-                    cancelOptions={{
-                        style: { display: "none" }
-                    }}
-                    onSelect={(e) => {
-                        setDocuments(e.files);
-                    }}
-                    emptyTemplate={
-                        <div className="upload-empty">
-                            <i className="pi pi-folder" />
-                            <span>Ou arraste os arquivos aqui</span>
-                        </div>
-                    }
-                />
-
-                {documents.length > 0 && (
-                    <small className="documents-count">
-                        {documents.length} arquivo(s) selecionado(s)
-                    </small>
-                )}
+              </div>
+              <IconButton
+                icon="pi-times"
+                variant="ghost"
+                size="sm"
+                aria-label={`Remover documento ${doc.name}`}
+                onClick={() => removeDocument(index)}
+              />
             </div>
-        </Card>
-    );
+          ))}
+
+          <div className="vessel-doc-item vessel-doc-item--recommended">
+            <div className="vessel-doc-item__info">
+              <span className="vessel-doc-item__icon-box vessel-doc-item__icon-box--muted">
+                <i className="pi pi-file" aria-hidden="true" />
+              </span>
+              <div className="vessel-doc-item__meta">
+                <span className="vessel-doc-item__name">
+                  Plano geral (General Arrangement)
+                </span>
+                <span className="vessel-doc-item__sub">
+                  Recomendado para agilizar o cadastro de conveses
+                </span>
+              </div>
+            </div>
+            <Badge
+              tone={documents.length > 0 ? "success" : "warning"}
+              size="sm"
+            >
+              {documents.length > 0 ? "Anexado" : "Pendente"}
+            </Badge>
+          </div>
+        </div>
+      </div>
+    </SectionCard>
+  );
 }

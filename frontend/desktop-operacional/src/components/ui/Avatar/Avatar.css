@@ -1,0 +1,45 @@
+/* ==========================================================================
+   Design System — Avatar (componente de apoio)
+   ========================================================================== */
+
+.ui-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-primary-700);
+  color: var(--color-white);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  user-select: none;
+}
+
+.ui-avatar--sm {
+  width: var(--space-8); /* 32px */
+  height: var(--space-8);
+  font-size: var(--text-label-sm);
+}
+
+.ui-avatar--md {
+  width: 40px;
+  height: 40px;
+  font-size: var(--text-label-md);
+}
+
+.ui-avatar--lg {
+  width: var(--space-12); /* 48px */
+  height: var(--space-12);
+  font-size: var(--text-body-lg);
+}
+
+.ui-avatar--bordered {
+  border: 2px solid var(--color-white);
+}
+
+.ui-avatar__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

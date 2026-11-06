@@ -1,0 +1,105 @@
+/* ==========================================================================
+   Design System — Topbar (Fase 03)
+   Mantém a identidade escura atual (TopBar.css) com altura via --topbar-height.
+   ========================================================================== */
+
+.ui-topbar {
+  width: 100%;
+  height: var(--topbar-height, 72px);
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: 0 56px;
+  flex-shrink: 0;
+  background: var(--color-primary-900);
+  border-bottom: var(--border-width) solid var(--color-primary-800);
+  font-family: var(--font-sans);
+}
+
+.ui-topbar__title {
+  flex-shrink: 0;
+  color: var(--color-gray-100);
+  font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
+}
+
+.ui-topbar__search {
+  width: 469px;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* Ajuste do Input para a superfície escura da Topbar */
+.ui-topbar__search .ui-input__control {
+  background-color: #f1f5f9;
+  border-color: var(--color-outline-variant);
+}
+
+.ui-topbar__shortcut {
+  padding: 2px 6px;
+  border: var(--border-width) solid var(--color-outline);
+  border-radius: var(--radius-xs);
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  white-space: nowrap;
+}
+
+.ui-topbar__actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* IconButton sobre fundo escuro */
+.ui-topbar .ui-icon-button {
+  color: var(--color-gray-400);
+}
+
+.ui-topbar .ui-icon-button:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-white);
+}
+
+.ui-topbar .ui-icon-button__count,
+.ui-topbar .ui-icon-button__dot {
+  box-shadow: 0 0 0 2px var(--color-primary-900);
+}
+
+.ui-topbar__user {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  cursor: pointer;
+}
+
+.ui-topbar__user:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-400);
+}
+
+@media (max-width: 1200px) {
+  .ui-topbar {
+    padding: 0 var(--space-6);
+    gap: var(--space-4);
+  }
+
+  .ui-topbar__search {
+    width: 320px;
+  }
+}
+
+@media (max-width: 900px) {
+  .ui-topbar__title {
+    display: none;
+  }
+
+  .ui-topbar__search {
+    width: 240px;
+  }
+}

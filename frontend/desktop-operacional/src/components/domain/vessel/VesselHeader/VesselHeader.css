@@ -1,0 +1,147 @@
+/* ==========================================================================
+   Domínio — VesselHeader (Fase 04)
+   ========================================================================== */
+
+.vessel-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  font-family: var(--font-sans);
+}
+
+.vessel-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.vessel-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.vessel-header__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.vessel-header__photo {
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--color-gray-50);
+  border: var(--border-width) solid var(--color-outline-variant);
+}
+
+.vessel-header__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.vessel-header__photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  color: var(--color-gray-400);
+}
+
+.vessel-header__photo-placeholder > i {
+  font-size: 24px;
+}
+
+.vessel-header__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.vessel-header__name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.vessel-header__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h1); /* 28px */
+  line-height: var(--leading-h1);
+  font-weight: var(--font-weight-h1);
+  letter-spacing: var(--tracking-h1);
+  color: var(--color-gray-900);
+}
+
+.vessel-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-gray-600);
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-body-sm);
+}
+
+.vessel-header__meta li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vessel-header__meta-icon {
+  font-size: 13px;
+  color: var(--color-gray-400);
+}
+
+/* Números-chave com divisores verticais */
+.vessel-header__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  margin: 0;
+  padding: var(--space-4) 0;
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+}
+
+.vessel-header__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 var(--space-4);
+  border-left: var(--border-width) solid var(--color-outline-variant);
+}
+
+.vessel-header__metric:first-child {
+  border-left: none;
+}
+
+.vessel-header__metric dt {
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  color: var(--color-gray-500);
+}
+
+.vessel-header__metric dd {
+  margin: 0;
+  font-size: var(--text-num-md);
+  line-height: var(--leading-num-md);
+  font-weight: var(--font-weight-num-md);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-gray-900);
+}

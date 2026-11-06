@@ -1,0 +1,59 @@
+/* ==========================================================================
+   Design System — Breadcrumb (Fase 03)
+   ========================================================================== */
+
+.ui-breadcrumb__list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm); /* 13px */
+  line-height: var(--leading-body-sm); /* 20px */
+}
+
+.ui-breadcrumb__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ui-breadcrumb__link {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--color-gray-500);
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: color 0.15s ease;
+}
+
+.ui-breadcrumb__link:hover {
+  color: var(--color-primary-500);
+  text-decoration: underline;
+}
+
+.ui-breadcrumb__link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-200);
+}
+
+.ui-breadcrumb__text {
+  color: var(--color-gray-500);
+}
+
+.ui-breadcrumb__current {
+  color: var(--color-gray-900);
+  font-weight: 500;
+}
+
+.ui-breadcrumb__separator {
+  font-size: 11px;
+  color: var(--color-gray-400);
+}

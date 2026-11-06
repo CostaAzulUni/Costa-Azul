@@ -1,119 +1,135 @@
-import { Card } from "primereact/card";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
+import { Alert, Input, SectionCard, Select } from "../../../../components";
+import {
+  CLASSIFICATION_SOCIETY_OPTIONS,
+  OPERATIONAL_STATUS_OPTIONS,
+  type VesselFieldErrors,
+  type VesselFieldKey,
+  type VesselFormData,
+} from "../vesselFormConfig";
 
-
-interface VesselCertificationProps {
-    classificationSociety: string;
-    setClassificationSociety: (value: string) => void;
-
-    ismCertification: string;
-    setIsmCertification: (value: string) => void;
-
-    certificateExpiryDate: string;
-    setCertificateExpiryDate: (value: string) => void;
-
-    operationalStatus: string;
-    setOperationalStatus: (value: string) => void;
+export interface VesselCertificationProps {
+  formData: VesselFormData;
+  errors: VesselFieldErrors;
+  onFieldChange: <K extends VesselFieldKey>(
+    field: K,
+    value: VesselFormData[K]
+  ) => void;
 }
 
 export function VesselCertification({
-    classificationSociety,
-    setClassificationSociety,
-    ismCertification,
-    setIsmCertification,
-    certificateExpiryDate,
-    setCertificateExpiryDate,
-    operationalStatus,
-    setOperationalStatus
+  formData,
+  errors,
+  onFieldChange,
 }: VesselCertificationProps) {
-     
+  return (
+    <div className="vessel-step-stack">
+      <SectionCard
+        title="Classificação e certificações"
+        subtitle="Classificadora e Código ISM"
+        icon="pi-shield"
+      >
+        <div className="vessel-form-grid vessel-form-grid--3cols">
+          <Select
+            id="classificationSociety"
+            label="Classificadora naval (IACS)"
+            required
+            size="lg"
+            value={formData.classificationSociety}
+            errorMessage={errors.classificationSociety}
+            options={CLASSIFICATION_SOCIETY_OPTIONS}
+            onChange={(e) =>
+              onFieldChange("classificationSociety", e.target.value)
+            }
+            placeholder="Selecione a classificadora"
+          />
 
-    const status = [
-    { label: "Ativo", value: "ACTIVE" },
-    { label: "Inativo", value: "INACTIVE" },
-    { label: "Em manutenção", value: "MAINTENANCE" },
-];
+          <Input
+            id="ismCertification"
+            label="Certificação Código ISM"
+            required
+            size="lg"
+            value={formData.ismCertification}
+            errorMessage={errors.ismCertification}
+            onChange={(e) => onFieldChange("ismCertification", e.target.value)}
+            placeholder="Ex.: DOC/SMC nº 3310-SMC-BR"
+          />
 
-    return (
-        <section className="vessel-section">
-        <Card className="vessel-card">
-            <div className="section-title">
-                <div className="section-icon">
-                    <i className="pi pi-verified" />
-                </div>
+          <Input
+            id="certificateExpiryDate"
+            label="Validade do certificado"
+            required
+            size="lg"
+            type="date"
+            value={formData.certificateExpiryDate}
+            errorMessage={errors.certificateExpiryDate}
+            onChange={(e) =>
+              onFieldChange("certificateExpiryDate", e.target.value)
+            }
+            helperText="Alertas 60, 30 e 15 dias antes."
+          />
+        </div>
+      </SectionCard>
 
-                <h2>Seção 4 - Certificações e Conformidade</h2>
-            </div>
+      <SectionCard
+        title="Status operacional inicial"
+        subtitle="Obrigatório · pode ser alterado depois na ficha da embarcação"
+        icon="pi-wrench"
+      >
+        <div
+          className="vessel-status-grid"
+          role="radiogroup"
+          aria-label="Status operacional inicial"
+        >
+          {OPERATIONAL_STATUS_OPTIONS.map((option) => {
+            const isSelected = formData.operationalStatus === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                className={`vessel-status-card ${
+                  isSelected ? "vessel-status-card--selected" : ""
+                }`}
+                onClick={() => onFieldChange("operationalStatus", option.value)}
+              >
+                <span
+                  className={`vessel-status-card__radio ${
+                    isSelected ? "vessel-status-card__radio--checked" : ""
+                  }`}
+                  aria-hidden="true"
+                >
+                  {isSelected && (
+                    <span className="vessel-status-card__radio-dot" />
+                  )}
+                </span>
 
-            <div className="vessel-fields-grid">
-
-                <div className="form-field">
-                    <label htmlFor="classificadora">
-                        Classificadora Naval (IACS)
-                    </label>
-
-                    <InputText
-                        id="classificadora"
-                        placeholder="Inserir classificadora"
-                        className="w-full"
-                        value={classificationSociety}
-                        onChange={(e) => setClassificationSociety(e.target.value)}
+                <span className="vessel-status-card__body">
+                  <span className="vessel-status-card__title-row">
+                    <span
+                      className="vessel-status-card__status-dot"
+                      style={{ backgroundColor: option.dotColor }}
+                      aria-hidden="true"
                     />
-                </div>
-                
-                
+                    <span className="vessel-status-card__title">
+                      {option.label}
+                    </span>
+                  </span>
+                  <span className="vessel-status-card__desc">
+                    {option.description}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </SectionCard>
 
-                <div className="form-field">
-                    <label htmlFor="ism">
-                        Certificação Código ISM
-                    </label>
-
-                    <InputText
-                        id="ism"
-                        placeholder="Inserir certificação"
-                        className="w-full"
-                        value={ismCertification}
-                        onChange={(e) => setIsmCertification(e.target.value)}
-                    />
-                </div>
-                    
-                
-
-                <div className="form-field">
-                    <label>
-                        Status Operacional <span>*</span>
-                    </label>
-
-                    <Dropdown
-                        options={status}
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="Selecionar status"
-                        className="w-full"
-                        value={operationalStatus}
-                        onChange={(e) => setOperationalStatus(e.value)}
-                    />
-                
-                </div>
-
-                <div className="form-field">
-                    <label htmlFor="validade">
-                        Validade do certificado
-                    </label>
-
-                    <InputText
-                        id="validade"
-                        type="date"
-                        placeholder="Inserir validade"
-                        className="w-full"
-                        value={certificateExpiryDate ? certificateExpiryDate.toString() : ""}
-                        onChange={(e) => setCertificateExpiryDate(e.target.value)}
-                    />
-                </div>
-
-            </div>
-        </Card>
-        </section>
-    );
+      <Alert
+        variant="info"
+        title="Os demais certificados entram na ficha"
+        description="SOLAS, ISPS, MARPOL e MLC podem ser anexados na aba Certificações depois do cadastro."
+      />
+    </div>
+  );
 }

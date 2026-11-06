@@ -1,0 +1,113 @@
+/* ==========================================================================
+   Design System — DataTable (Fase 05)
+   ========================================================================== */
+
+@keyframes ui-table-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.ui-data-table {
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--color-white);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg); /* 16px */
+  font-family: var(--font-sans);
+}
+
+.ui-data-table__scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.ui-data-table__table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.ui-data-table__th {
+  height: 40px;
+  padding: 0 var(--space-4);
+  background-color: var(--color-gray-50);
+  border-bottom: var(--border-width) solid var(--color-outline-variant);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+  white-space: nowrap;
+}
+
+.ui-data-table__tr {
+  border-bottom: var(--border-width) solid var(--color-outline-variant);
+  transition: background-color 0.12s ease;
+}
+
+.ui-data-table__tr:last-child {
+  border-bottom: none;
+}
+
+.ui-data-table__tr:hover {
+  background-color: var(--color-gray-50);
+}
+
+.ui-data-table__tr--interactive {
+  cursor: pointer;
+}
+
+.ui-data-table__tr--interactive:focus-visible {
+  outline: none;
+  background-color: var(--color-primary-50);
+}
+
+.ui-data-table__td {
+  height: 52px;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-body-md); /* 14px */
+  line-height: var(--leading-body-md);
+  color: var(--color-gray-800);
+  vertical-align: middle;
+}
+
+.ui-data-table__td--tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-data-table__cell--left {
+  text-align: left;
+}
+
+.ui-data-table__cell--center {
+  text-align: center;
+}
+
+.ui-data-table__cell--right {
+  text-align: right;
+}
+
+.ui-data-table__empty-cell {
+  padding: 0;
+}
+
+.ui-data-table__skeleton {
+  display: block;
+  width: 75%;
+  height: 14px;
+  border-radius: var(--radius-xs);
+  background-color: var(--color-gray-100);
+  animation: ui-table-pulse 1.5s ease-in-out infinite;
+}
+
+.ui-data-table__footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--border-width) solid var(--color-outline-variant);
+  background-color: var(--color-white);
+}
