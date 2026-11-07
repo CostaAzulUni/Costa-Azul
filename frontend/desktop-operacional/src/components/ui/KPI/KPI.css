@@ -1,0 +1,176 @@
+/* ==========================================================================
+   Design System — KPI (Card de Indicador Operacional — Fase 01)
+   ========================================================================== */
+
+.ui-kpi {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3); /* 12px */
+  width: 100%;
+  padding: 18px 20px;
+  background-color: var(--color-white);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg); /* 16px */
+  box-shadow: var(--shadow-elev-0);
+  font-family: var(--font-sans);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.ui-kpi--interactive {
+  cursor: pointer;
+}
+
+.ui-kpi--interactive:hover {
+  border-color: var(--color-outline);
+  box-shadow: var(--shadow-elev-1);
+}
+
+.ui-kpi--interactive:focus-visible {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+/* ==========================================================================
+   1. Linha Superior (Ícone + Rótulo)
+   ========================================================================== */
+
+.ui-kpi__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2); /* 8px */
+}
+
+.ui-kpi__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  font-size: 15px;
+  color: var(--color-primary-500);
+}
+
+.ui-kpi__label {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm); /* 13px */
+  line-height: var(--leading-body-sm); /* 20px */
+  font-weight: 500;
+  color: var(--color-gray-600);
+}
+
+/* ==========================================================================
+   2. Valor Principal (Manrope Bold 28px/36px + Tabular Nums)
+   ========================================================================== */
+
+.ui-kpi__value {
+  margin: 0;
+  font-family: var(--font-heading); /* Manrope */
+  font-size: var(--text-h1); /* 28px */
+  line-height: var(--leading-h1); /* 36px */
+  font-weight: var(--font-weight-h1); /* 700 */
+  letter-spacing: var(--tracking-h1);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-gray-900);
+}
+
+/* ==========================================================================
+   3. Linha Inferior (Pill de Destaque + Detalhe Contextual)
+   ========================================================================== */
+
+.ui-kpi__footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2); /* 8px */
+}
+
+.ui-kpi__highlight {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 var(--space-2); /* 0 8px */
+  border-radius: var(--radius-pill); /* 999px */
+  font-family: var(--font-sans);
+  font-size: var(--text-label-sm); /* 12px */
+  line-height: var(--leading-label-sm); /* 16px */
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tons semânticos do Pill de Destaque */
+.ui-kpi__highlight--success {
+  background-color: var(--color-success-50);
+  color: var(--color-success-900);
+}
+
+.ui-kpi__highlight--warning {
+  background-color: var(--color-warning-100);
+  color: var(--color-warning-900);
+}
+
+.ui-kpi__highlight--error {
+  background-color: var(--color-error-100);
+  color: var(--color-error-900);
+}
+
+.ui-kpi__highlight--info {
+  background-color: var(--color-info-100);
+  color: var(--color-info-900);
+}
+
+.ui-kpi__highlight--neutral {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.ui-kpi__detail {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption); /* 12px */
+  line-height: var(--leading-caption); /* 16px */
+  color: var(--color-gray-500);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Estado de Carregamento (Skeleton — Tela D · 07 · Carregando do Figma)
+   ========================================================================== */
+
+@keyframes ui-kpi-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.ui-kpi__skeleton-bar {
+  display: block;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-xs);
+  animation: ui-kpi-pulse 1.5s ease-in-out infinite;
+}
+
+.ui-kpi__skeleton-bar--label {
+  width: 55%;
+  height: 14px;
+}
+
+.ui-kpi__skeleton-bar--value {
+  width: 40%;
+  height: 32px;
+  border-radius: var(--radius-sm);
+}
+
+.ui-kpi__skeleton-bar--detail {
+  width: 70%;
+  height: 14px;
+}

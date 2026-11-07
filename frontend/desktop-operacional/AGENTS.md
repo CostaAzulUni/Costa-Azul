@@ -26,6 +26,12 @@ O projeto utiliza uma arquitetura orientada a **features** dentro de `src/`:
 
 ```text
 src/
+├── components/                 # Biblioteca global do Design System Costa Azul (barrel export em index.ts)
+│   ├── ui/                     # Componentes base e infraestrutura (Button, Input, Select, Alert, KPI, Badge, IconButton, Checkbox, Switch, FilterChip, Tabs, SectionCard, Modal, Toast, Pagination, DataTable, EmptyState, Avatar, Icon)
+│   ├── layout/                 # Estrutura da aplicação (Sidebar, Topbar, Breadcrumb, WizardStepper)
+│   ├── domain/
+│   │   └── vessel/             # Componentes reutilizáveis do domínio naval (VesselHeader, VesselCard, AreaCard, DeckItem)
+│   └── index.ts                # Exportação central do Design System
 ├── features/
 │   ├── login/                  # Fluxo de autenticação (Login.tsx, Login.css, components/)
 │   └── company/                # Área logada operacional/administrativa
@@ -51,6 +57,7 @@ src/
 ```
 
 ### Regras de Organização
+- **Biblioteca de Componentes (`src/components/`):** Priorize o uso dos componentes compartilhados do Design System exportados por `src/components` (`Button`, `Input`, `Select`, `SectionCard`, `Alert`, `Badge`, `Toast`, `Breadcrumb`, etc.) antes de instanciar primitivos externos diretamente nas telas. Reserve componentes do PrimeReact (`FileUpload`, `Calendar`, etc.) para casos específicos ainda não cobertos pela biblioteca própria.
 - **Novas páginas/módulos:** Devem ser criadas dentro de `src/features/company/<nome-da-feature>/` (ou em uma nova feature de primeiro nível se não pertencer ao escopo `company`).
 - **Estilização de Componentes:** Prefira criar um arquivo `<NomeDoComponente>.css` junto ao componente e estilizar com classes semânticas/BEM (ex: `.vessel-header`, `.sidebar__item`) utilizando as variáveis de `src/index.css` (`var(--color-...)`, `var(--space-...)`, `var(--radius-...)`), em vez de sobrecarregar o JSX com classes utilitárias do Tailwind.
 - **Rotas autenticadas/operacionais:** Devem ser aninhadas dentro do `<Route element={<CompanyLayout />}>` em `src/routes/AppRoutes.tsx`.
@@ -156,10 +163,11 @@ Todos os tokens abaixo foram extraídos da seção **Fundação** do Figma e est
    - Utilize as Custom Properties definidas no `@theme` de `src/index.css` (ex: `color: var(--color-gray-900);`, `font-family: var(--font-heading);`, `border-radius: var(--radius-md);`).
 3. **Tipagem TypeScript:**
    - Sempre declare interfaces explícitas para as props dos componentes (ex: `interface NomeDoComponenteProps { ... }`).
-   - Evite o uso de `any`. Para campos numéricos de formulário do PrimeReact (`InputNumber`), tipar estados como `number | null` e tratar `e.value ?? null`.
-4. **Componentes PrimeReact + Ícones:**
-   - Use ícones da biblioteca `primeicons` (ex: `<i className="pi pi-compass" />`, `pi-ship`, `pi-users`).
-   - Associe sempre `<label htmlFor="...">` ao `id` correspondente nos campos `InputNumber`, `InputText`, `Dropdown`, etc.
+   - Evite o uso de `any`. Para campos numéricos controlados (`number | null`), converta valores vazios (`""`) para `null`.
+4. **Componentes do Design System e PrimeReact:**
+   - Utilize prioritariamente os componentes de `src/components/` (`Button`, `Input`, `Select`, `SectionCard`, `Alert`, `Badge`, `Toast`, `Breadcrumb`, etc.).
+   - Use ícones da biblioteca `primeicons` (ex: `<i className="pi pi-compass" />`, `pi-ship`, `pi-users` ou via prop `icon="pi-compass"` nos componentes do Design System).
+   - Associe sempre `<label htmlFor="...">` ao `id` correspondente nos controles de formulário (o `Input` e o `Select` do Design System fazem isso automaticamente via `id` ou `useId()`).
 5. **Autenticação e API:**
    - O token JWT é armazenado no `localStorage` sob a chave `@costaazul-token` e injetado automaticamente pelo interceptor em `src/services/api.ts`.
    - O backend local responde por padrão em `http://localhost:8080`.

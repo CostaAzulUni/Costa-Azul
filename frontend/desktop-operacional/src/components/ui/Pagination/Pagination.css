@@ -1,0 +1,97 @@
+/* ==========================================================================
+   Design System — Pagination ("Paginação" #4422:16687 — Fase 05)
+   ========================================================================== */
+
+.ui-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+.ui-pagination__summary {
+  font-size: var(--text-body-sm); /* 13px */
+  line-height: var(--leading-body-sm);
+  color: var(--color-gray-500);
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-pagination__summary strong {
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+.ui-pagination__controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1); /* 4px */
+}
+
+.ui-pagination__btn {
+  min-width: var(--space-8); /* 32px */
+  height: var(--space-8); /* 32px */
+  padding: 0 var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--border-width) solid var(--color-outline);
+  border-radius: var(--radius-sm); /* 8px */
+  background-color: var(--color-white);
+  color: var(--color-gray-700);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm); /* 13px */
+  line-height: 1;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.ui-pagination__btn i {
+  font-size: 11px;
+}
+
+.ui-pagination__btn:hover:not(:disabled):not(.ui-pagination__btn--selected) {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-300);
+  color: var(--color-gray-900);
+}
+
+.ui-pagination__btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+/* Estado Selecionado */
+.ui-pagination__btn--selected {
+  background-color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+  color: var(--color-white);
+  font-weight: 600;
+}
+
+/* Estado Disabled */
+.ui-pagination__btn:disabled {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+  color: var(--color-gray-400);
+  cursor: not-allowed;
+}
+
+.ui-pagination__ellipsis {
+  min-width: var(--space-6);
+  height: var(--space-8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-400);
+  font-size: var(--text-body-sm);
+  user-select: none;
+}

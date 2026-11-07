@@ -1,0 +1,131 @@
+/* ==========================================================================
+   Domínio — AreaCard ("Card de área" #4422:27239 — Fase 04)
+   ========================================================================== */
+
+.area-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg); /* 16px */
+  font-family: var(--font-sans);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.area-card:hover {
+  border-color: var(--color-outline);
+  box-shadow: var(--shadow-elev-1);
+}
+
+.area-card--interactive {
+  cursor: pointer;
+}
+
+.area-card--interactive:focus-visible {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.area-card__media {
+  position: relative;
+  height: 140px;
+  background: var(--color-gray-50);
+}
+
+.area-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.area-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-300);
+  font-size: 28px;
+}
+
+.area-card__status {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  box-shadow: var(--shadow-elev-1);
+}
+
+.area-card__edit {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  opacity: 0.92;
+  transition: opacity 0.15s ease;
+}
+
+.area-card:hover .area-card__edit {
+  opacity: 1;
+}
+
+.area-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  flex: 1;
+}
+
+.area-card__category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-label-sm); /* 12px */
+  line-height: var(--leading-label-sm);
+  font-weight: 500;
+  color: var(--color-primary-600);
+}
+
+.area-card__category-icon {
+  font-size: 13px;
+}
+
+.area-card__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h3); /* 18px */
+  line-height: var(--leading-h3);
+  font-weight: var(--font-weight-h3);
+  color: var(--color-gray-900);
+}
+
+.area-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: var(--space-1) 0 0;
+  padding: var(--space-3) 0 0;
+  border-top: var(--border-width) solid var(--color-outline-variant);
+  list-style: none;
+  font-size: var(--text-body-sm); /* 13px */
+  line-height: var(--leading-body-sm);
+  color: var(--color-gray-600);
+}
+
+.area-card__meta li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.area-card__meta i {
+  width: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-gray-400);
+}

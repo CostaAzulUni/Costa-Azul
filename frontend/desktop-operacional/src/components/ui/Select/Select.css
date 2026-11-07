@@ -1,0 +1,193 @@
+/* ==========================================================================
+   Design System — Select (Fase 01)
+   ========================================================================== */
+
+.ui-select-field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-family: var(--font-sans);
+}
+
+.ui-select-field--full-width {
+  display: flex;
+  width: 100%;
+}
+
+/* ==========================================================================
+   Label do Select
+   ========================================================================== */
+
+.ui-select__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-label-md); /* 14px */
+  line-height: var(--leading-label-md); /* 20px */
+  font-weight: var(--font-weight-label-md); /* 500 */
+  color: var(--color-gray-800);
+}
+
+.ui-select__required {
+  color: var(--color-error-500);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Container Visual do Select (Tamanhos e Estados)
+   ========================================================================== */
+
+.ui-select__control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  background-color: var(--color-white);
+  border: var(--border-width) solid var(--color-outline);
+  border-radius: var(--radius-sm); /* 8px */
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* Tamanhos: sm (32px filtro), md (40px formulário), lg (48px wizard) */
+.ui-select__control--sm {
+  height: var(--space-8); /* 32px */
+  min-width: 140px;
+}
+
+.ui-select__control--md {
+  height: 40px;
+}
+
+.ui-select__control--lg {
+  height: var(--space-12); /* 48px */
+}
+
+/* Hover */
+.ui-select__control:hover:not(.ui-select__control--disabled):not(.ui-select__control--error) {
+  border-color: var(--color-primary-400);
+}
+
+/* Focus */
+.ui-select__control:focus-within:not(.ui-select__control--disabled) {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+/* Error */
+.ui-select__control--error {
+  border-color: var(--color-error-500);
+}
+
+.ui-select__control--error:focus-within {
+  border-color: var(--color-error-500);
+  box-shadow: 0 0 0 3px var(--color-error-100);
+}
+
+/* Disabled */
+.ui-select__control--disabled {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Prefixo de Filtro (ex: "Status:" em barras de listagem) e Elemento <select>
+   ========================================================================== */
+
+.ui-select__prefix {
+  padding-left: var(--space-3);
+  font-size: var(--text-body-sm); /* 13px */
+  line-height: var(--leading-body-sm);
+  color: var(--color-gray-500);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ui-select__element {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  padding: 0 36px 0 var(--space-3);
+  border: none;
+  outline: none;
+  background: transparent;
+  appearance: none; /* Remove a seta padrão do navegador para usarmos o chevron do Design System */
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md); /* 14px */
+  line-height: var(--leading-body-md); /* 20px */
+  color: var(--color-gray-900);
+  cursor: pointer;
+}
+
+.ui-select__control--sm .ui-select__element {
+  font-size: var(--text-body-sm); /* 13px */
+  line-height: var(--leading-body-sm);
+  padding-right: 30px;
+}
+
+.ui-select__control--lg .ui-select__element {
+  padding-left: var(--space-4);
+  padding-right: 40px;
+}
+
+.ui-select__element--with-prefix {
+  padding-left: var(--space-1);
+  font-weight: 500;
+}
+
+.ui-select__element--placeholder {
+  color: var(--color-gray-400);
+}
+
+.ui-select__element:disabled {
+  color: var(--color-gray-500);
+  cursor: not-allowed;
+}
+
+/* Ícone Chevron Fixo à Direita */
+.ui-select__chevron {
+  position: absolute;
+  right: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-500);
+  font-size: 13px;
+  pointer-events: none; /* Permite que o clique atravesse o ícone e abra o <select> */
+}
+
+.ui-select__control--sm .ui-select__chevron {
+  right: 10px;
+  font-size: 12px;
+}
+
+.ui-select__control--lg .ui-select__chevron {
+  right: var(--space-4);
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   Mensagens de Apoio e Erro
+   ========================================================================== */
+
+.ui-select__helper {
+  margin: 0;
+  font-size: var(--text-caption); /* 12px */
+  line-height: var(--leading-caption); /* 16px */
+  color: var(--color-gray-500);
+}
+
+.ui-select__error {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--text-caption); /* 12px */
+  line-height: var(--leading-caption); /* 16px */
+  color: var(--color-error-500);
+  font-weight: 500;
+}

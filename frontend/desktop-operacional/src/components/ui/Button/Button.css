@@ -1,0 +1,196 @@
+/* ==========================================================================
+   Design System — Button (Fase 01)
+   ========================================================================== */
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-label-md);
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid transparent;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* ==========================================================================
+   Tamanhos (sm, md, lg)
+   ========================================================================== */
+
+.ui-button--sm {
+  height: var(--space-8); /* 32px */
+  padding: 0 var(--space-3); /* 0 12px */
+  gap: 6px;
+  font-size: var(--text-label-sm); /* 12px */
+  line-height: var(--leading-label-sm); /* 16px */
+}
+
+.ui-button--md {
+  height: 40px;
+  padding: var(--space-2) var(--space-4); /* 8px 16px */
+  gap: var(--space-2); /* 8px */
+  font-size: var(--text-label-md); /* 14px */
+  line-height: var(--leading-label-md); /* 20px */
+}
+
+.ui-button--lg {
+  height: var(--space-12); /* 48px */
+  padding: var(--space-3) 20px; /* 12px 20px */
+  gap: var(--space-2); /* 8px */
+  font-size: var(--text-label-md); /* 14px */
+  line-height: var(--leading-label-md); /* 20px */
+  font-weight: 600;
+}
+
+.ui-button--full-width {
+  width: 100%;
+}
+
+/* ==========================================================================
+   Variantes (primary, secondary, ghost, danger) + Estados (default, hover, active)
+   ========================================================================== */
+
+/* Primary */
+.ui-button--primary {
+  background-color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+  color: var(--color-white);
+  box-shadow: var(--shadow-elev-1);
+}
+
+.ui-button--primary:hover:not(:disabled) {
+  background-color: var(--color-primary-600);
+  border-color: var(--color-primary-600);
+}
+
+.ui-button--primary:active:not(:disabled) {
+  background-color: var(--color-primary-700);
+  border-color: var(--color-primary-700);
+}
+
+/* Secondary */
+.ui-button--secondary {
+  background-color: var(--color-white);
+  border-color: var(--color-outline);
+  color: var(--color-gray-800);
+  box-shadow: var(--shadow-elev-1);
+}
+
+.ui-button--secondary:hover:not(:disabled) {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-300);
+  color: var(--color-gray-900);
+}
+
+.ui-button--secondary:active:not(:disabled) {
+  background-color: var(--color-gray-100);
+  border-color: var(--color-gray-300);
+}
+
+/* Ghost */
+.ui-button--ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--color-primary-500);
+}
+
+.ui-button--ghost:hover:not(:disabled) {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.ui-button--ghost:active:not(:disabled) {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+/* Danger */
+.ui-button--danger {
+  background-color: var(--color-error-500);
+  border-color: var(--color-error-500);
+  color: var(--color-white);
+  box-shadow: var(--shadow-elev-1);
+}
+
+.ui-button--danger:hover:not(:disabled) {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+
+.ui-button--danger:active:not(:disabled) {
+  background-color: var(--color-error-900);
+  border-color: var(--color-error-900);
+}
+
+/* ==========================================================================
+   Estados de Foco e Desabilitado (focus, disabled)
+   ========================================================================== */
+
+.ui-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.ui-button--danger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-error-100);
+}
+
+.ui-button:disabled {
+  cursor: not-allowed;
+  box-shadow: var(--shadow-elev-0);
+}
+
+.ui-button--primary:disabled,
+.ui-button--danger:disabled {
+  background-color: var(--color-gray-100);
+  border-color: var(--color-gray-100);
+  color: var(--color-gray-400);
+}
+
+.ui-button--secondary:disabled {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+  color: var(--color-gray-400);
+}
+
+.ui-button--ghost:disabled {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--color-gray-400);
+}
+
+/* ==========================================================================
+   Elementos Internos (Ícone e Conteúdo)
+   ========================================================================== */
+
+.ui-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.ui-button--sm .ui-button__icon {
+  font-size: 12px;
+}
+
+.ui-button--lg .ui-button__icon {
+  font-size: 16px;
+}
+
+.ui-button__label {
+  display: inline-flex;
+  align-items: center;
+}
+

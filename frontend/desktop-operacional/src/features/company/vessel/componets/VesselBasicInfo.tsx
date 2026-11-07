@@ -1,241 +1,215 @@
-import { Card } from "primereact/card";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
-import { FileUpload } from "primereact/fileupload";
-import { useState } from "react";
-import { InputNumber } from "primereact/inputnumber";
+import { useRef, type ChangeEvent } from "react";
+import { Button, Input, SectionCard, Select } from "../../../../components";
+import {
+  VESSEL_FLAG_OPTIONS,
+  type VesselFieldErrors,
+  type VesselFieldKey,
+  type VesselFormData,
+} from "../vesselFormConfig";
 
-interface VesselBasicInfoProps {
-    vesselName: string;
-    setVesselName: (value: string) => void;
-
-    nationalRegistrationNumber: string;
-    setNationalRegistrationNumber: (value: string) => void;
-
-    flag: string;
-    setFlag: (value: string) => void;
-
-    imoNumber: string;
-    setImoNumber: (value: string) => void;
-
-    yearBuilt: number | null;
-    setYearBuilt: (value: number | null) => void;
+export interface VesselBasicInfoProps {
+  formData: VesselFormData;
+  errors: VesselFieldErrors;
+  onFieldChange: <K extends VesselFieldKey>(
+    field: K,
+    value: VesselFormData[K]
+  ) => void;
+  photoFile: File | null;
+  photoPreview: string | null;
+  onPhotoChange: (file: File | null, preview: string | null) => void;
 }
 
 export function VesselBasicInfo({
-    vesselName,
-    setVesselName,
-    nationalRegistrationNumber,
-    setNationalRegistrationNumber,
-    flag,
-    setFlag,
-    imoNumber,
-    setImoNumber,
-    yearBuilt,
-    setYearBuilt
+  formData,
+  errors,
+  onFieldChange,
+  photoFile,
+  photoPreview,
+  onPhotoChange,
 }: VesselBasicInfoProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [vesselPhoto, setVesselPhoto] = useState<File | null>(null);
-    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const handlePhotoUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    const bandeiras = [
-        { label: "Brasil", value: "BR" },
-        { label: "Panamá", value: "PA" },
-        { label: "Libéria", value: "LR" },
-        { label: "Bahamas", value: "BS" }
-    ];
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      onPhotoChange(file, reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
-    return (
-        <section className="vessel-section">
+  const handleRemovePhoto = () => {
+    onPhotoChange(null, null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
-            <div className="vessel-basic-content">
+  const handleYearBuiltChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const raw = event.target.value;
+    onFieldChange("yearBuilt", raw === "" ? null : Number(raw));
+  };
 
-                {/* CARD 1 — Informações */}
-                <Card className="vessel-card vessel-card--basic">
+  const photoFileName = photoFile
+    ? photoFile.name
+    : "Nenhuma imagem selecionada";
+  const photoFileDetails = photoFile
+    ? `${(photoFile.size / (1024 * 1024)).toFixed(1).replace(".", ",")} MB · pré-visualização local`
+    : "JPG ou PNG · 2560 × 1440 px recomendado";
 
-                    <div className="section-title">
-                        <div className="section-icon">
-                            <i className="pi pi-id-card" />
-                        </div>
+  return (
+    <div className="vessel-step-stack">
+      <SectionCard
+        title="Informações básicas"
+        subtitle="Identificação legal e de registro da embarcação"
+        icon="pi-compass"
+      >
+        <div className="vessel-form-grid">
+          <Input
+            id="vesselName"
+            label="Nome oficial da embarcação"
+            required
+            size="lg"
+            value={formData.vesselName}
+            errorMessage={errors.vesselName}
+            onChange={(e) => onFieldChange("vesselName", e.target.value)}
+            placeholder="Ex.: Aurora Austral"
+          />
 
-                        <h2>Seção 1 - Informações Básicas</h2>
-                    </div>
+          <Input
+            id="companyOwner"
+            label="Empresa responsável"
+            isAutomatic
+            readOnly
+            disabled
+            size="lg"
+            placeholder="Costa Azul Cruzeiros"
+            helperText="Definida pela empresa do seu login."
+          />
 
-                    <div className="vessel-fields-grid">
+          <Input
+            id="nationalRegistrationNumber"
+            label="Número do registro nacional"
+            required
+            size="lg"
+            value={formData.nationalRegistrationNumber}
+            errorMessage={errors.nationalRegistrationNumber}
+            onChange={(e) =>
+              onFieldChange("nationalRegistrationNumber", e.target.value)
+            }
+            placeholder="Ex.: 704512983"
+            helperText="Registro na Capitania dos Portos / Tribunal Marítimo."
+          />
 
-                        <div className="form-field">
-                            <label>
-                                Nome oficial da Embarcação <span>*</span>
-                            </label>
+          <Select
+            id="flag"
+            label="Bandeira"
+            required
+            size="lg"
+            value={formData.flag}
+            errorMessage={errors.flag}
+            options={VESSEL_FLAG_OPTIONS}
+            onChange={(e) => onFieldChange("flag", e.target.value)}
+            placeholder="Selecione a bandeira"
+          />
 
-                            <InputText
-                                placeholder="Inserir nome do Navio"
-                                value={vesselName}
-                                onChange={(e) => setVesselName(e.target.value)}
-                            />
-                        </div>
+          <Input
+            id="imoNumber"
+            label="Número IMO"
+            required
+            size="lg"
+            maxLength={7}
+            inputMode="numeric"
+            value={formData.imoNumber}
+            errorMessage={errors.imoNumber}
+            onChange={(e) =>
+              onFieldChange("imoNumber", e.target.value.replace(/\D/g, ""))
+            }
+            placeholder="Ex.: 9876543"
+            helperText="7 dígitos numéricos · disponível na sua frota."
+          />
 
-                        <div className="form-field">
-                            <label>
-                                Nome da empresa responsável
-                            </label>
+          <Input
+            id="yearBuilt"
+            label="Ano de fabricação"
+            required
+            size="lg"
+            type="number"
+            min={1900}
+            max={2100}
+            value={formData.yearBuilt ?? ""}
+            errorMessage={errors.yearBuilt}
+            onChange={handleYearBuiltChange}
+            placeholder="Ex.: 2018"
+          />
+        </div>
+      </SectionCard>
 
-                            <InputText
-                                placeholder="Campo automático - nome da empresa"
-                                disabled
-                            />
-                        </div>
+      <SectionCard
+        title="Foto da embarcação"
+        subtitle="Opcional · 2560 × 1440 px recomendado (JPG ou PNG)"
+        icon="pi-image"
+      >
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handlePhotoUpload}
+          className="vessel-hidden-input"
+        />
 
-                        <div className="form-field">
-                            <label>
-                                Número do Registro Nacional <span>*</span>
-                            </label>
+        <div className="vessel-photo-row">
+          <button
+            type="button"
+            className="vessel-photo-thumb"
+            onClick={() => fileInputRef.current?.click()}
+            aria-label="Selecionar foto da embarcação"
+          >
+            {photoPreview ? (
+              <img
+                src={photoPreview}
+                alt="Pré-visualização da embarcação"
+                className="vessel-photo-thumb__img"
+              />
+            ) : (
+              <i
+                className="pi pi-compass vessel-photo-thumb__icon"
+                aria-hidden="true"
+              />
+            )}
+          </button>
 
-                            <InputText
-                                placeholder="Inserir número do registro"
-                                value={nationalRegistrationNumber}
-                                onChange={(e) =>
-                                    setNationalRegistrationNumber(e.target.value)
-                                }
-                            />
-                        </div>
+          <div className="vessel-photo-info">
+            <span className="vessel-photo-info__name">{photoFileName}</span>
+            <span className="vessel-photo-info__meta">{photoFileDetails}</span>
 
-                        <div className="form-field">
-                            <label>
-                                Bandeira <span>*</span>
-                            </label>
+            <div className="vessel-photo-info__actions">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                icon="pi-upload"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {photoPreview ? "Substituir imagem" : "Selecionar imagem"}
+              </Button>
 
-                            <Dropdown
-                                options={bandeiras}
-                                optionLabel="label"
-                                optionValue="value"
-                                placeholder="Selecionar bandeira"
-                                className="w-full"
-                                value={flag}
-                                onChange={(e) => setFlag(e.value)}
-                            />
-                        </div>
-
-                        <div className="form-field">
-                            <label>
-                                Número do IMO <span>*</span>
-                            </label>
-
-                            <InputText
-                                placeholder="Inserir IMO"
-                                value={imoNumber}
-                                onChange={(e) => setImoNumber(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="form-field">
-                            <label htmlFor="ano-fabricacao">
-                                Ano de Fabricação <span>*</span>
-                            </label>
-
-                            <InputNumber
-                                id="ano-fabricacao"
-                                placeholder="Inserir Ano"
-                                useGrouping={false}
-                                className="w-full"
-                                value={yearBuilt}
-                                onValueChange={(e) =>
-                                    setYearBuilt(e.value ?? null)
-                                }
-                            />
-                        </div>
-
-                    </div>
-
-                </Card>
-
-                {/* CARD 2 — Foto */}
-                <Card className="vessel-card vessel-card--upload">
-
-                    <div className="vessel-photo-card">
-
-                        <div className="photo-title">
-                            <i className="pi pi-camera" />
-
-                            <strong>
-                                Foto da Embarcação
-                            </strong>
-                        </div>
-
-                        <small className="photo-subtitle">
-                            Dimensão recomendada: 2560 × 1440 px
-                            (JPG, PNG,...)
-                        </small>
-
-                        <div className="photo-placeholder">
-                            {photoPreview ? (
-                                <>
-                                    <img
-                                        src={photoPreview}
-                                        alt="Pré-visualização da embarcação"
-                                    />
-                                    {vesselPhoto && (
-                                        <div className="photo-overlay-badge">
-                                            <span className="photo-overlay-dot" />
-                                            <span>{vesselPhoto.name.toUpperCase()}</span>
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <>
-                                    <i className="pi pi-image" />
-
-                                    <span>
-                                        {vesselPhoto
-                                            ? vesselPhoto.name
-                                            : "Nenhuma imagem selecionada"}
-                                    </span>
-                                </>
-                            )}
-                        </div>
-
-                        <FileUpload
-                            name="vesselPhoto"
-                            accept="image/*"
-                            customUpload
-                            className="photo-upload"
-                            chooseOptions={{
-                                label: photoPreview ? "Substituir imagem" : "Selecionar a imagem",
-                                icon: "none"
-                            }}
-                            uploadOptions={{
-                                style: { display: "none" }
-                            }}
-                            cancelOptions={{
-                                style: { display: "none" }
-                            }}
-                            onSelect={(e) => {
-                                const file = e.files[0] ?? null;
-
-                                setVesselPhoto(file);
-
-                                if (file) {
-                                    const reader = new FileReader();
-
-                                    reader.onload = () => {
-                                        setPhotoPreview(
-                                            reader.result as string
-                                        );
-                                    };
-
-                                    reader.readAsDataURL(file);
-                                } else {
-                                    setPhotoPreview(null);
-                                }
-                            }}
-                        />
-
-                    </div>
-
-                </Card>
-
+              {photoPreview && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRemovePhoto}
+                >
+                  Remover
+                </Button>
+              )}
             </div>
-
-        </section>
-    );
+          </div>
+        </div>
+      </SectionCard>
+    </div>
+  );
 }

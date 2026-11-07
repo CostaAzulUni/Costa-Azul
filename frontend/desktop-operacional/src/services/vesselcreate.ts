@@ -1,8 +1,7 @@
 import api from "./api";
 
-
 export interface VesselRequestDTO {
-    idCompany: string;
+    idCompany: string | null;
     vesselName: string;
     nationalRegistrationNumber: string;
     flag: string;
@@ -39,9 +38,49 @@ export interface DocumentDTO {
     fileSizeBytes: number;
 }
 
-export async function createVessel(vessel:VesselRequestDTO) {
-    const response = await api.post("/api/erp/vessels", vessel);
+export interface VesselResponseDTO {
+    idVessel: string;
+    idCompany: string;
+    companyName: string;
+    vesselName: string;
+    nationalRegistrationNumber: string;
+    flag: string;
+    imoNumber: string;
+    photoUrl: string | null;
+    yearBuilt: number;
+    shipyard: string;
+    grossTonnage: number;
+    deadweightTonnage: number | null;
+    lengthOverall: number;
+    maxBeam: number | null;
+    operatingDraft: number | null;
+    maxServiceSpeed: number | null;
+    mainPropulsion: string | null;
+    maxPassengerCapacity: number;
+    maxCrewCapacity: number | null;
+    lifeboatTotalCapacity: number | null;
+    classificationSociety: string | null;
+    ismCertification: string | null;
+    certificateExpiryDate: string | null;
+    operationalStatus: string;
+    idHomePort: string | null;
+    mainTerminal: string | null;
+    idManager: string | null;
+    operationalEmail: string | null;
+    deckCount: number;
+    cabinCount: number;
+    totalAreas: number;
+    createdAt: string;
+}
 
-    return response.data
-    
+export async function createVessel(vessel: VesselRequestDTO): Promise<VesselResponseDTO> {
+    const response = await api.post<VesselResponseDTO>("/api/erp/vessels", vessel);
+
+    return response.data;
+}
+
+export async function listVessels(): Promise<VesselResponseDTO[]> {
+    const response = await api.get<VesselResponseDTO[]>("/api/erp/vessels");
+
+    return response.data;
 }
