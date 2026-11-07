@@ -3,15 +3,24 @@ package com.costaazul.api.vessel.service;
 import com.costaazul.api.vessel.domain.Company;
 import com.costaazul.api.vessel.domain.Vessel;
 import com.costaazul.api.vessel.domain.VesselDocument;
+import com.costaazul.api.vessel.dto.PagedVesselResponseDTO;
 import com.costaazul.api.vessel.dto.VesselRequestDTO;
 import com.costaazul.api.vessel.dto.VesselResponseDTO;
+import com.costaazul.api.vessel.dto.VesselSummaryDTO;
 import com.costaazul.api.vessel.repository.CompanyRepository;
 import com.costaazul.api.vessel.repository.VesselDocumentRepository;
 import com.costaazul.api.vessel.repository.VesselRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class VesselService {
@@ -37,7 +46,6 @@ public class VesselService {
             throw new IllegalArgumentException("Já existe uma embarcação com este Número de Registro Nacional.");
         }
 
-        // Busca a empresa pelo ID enviado ou cria/recupera a "Costa Azul" automaticamente
         Company company = (dto.idCompany() != null)
                 ? companyRepository.findById(dto.idCompany())
                 .orElseThrow(() -> new IllegalArgumentException("Empresa responsável não encontrada."))
@@ -79,7 +87,6 @@ public class VesselService {
 
         Vessel savedVessel = vesselRepository.save(vessel);
 
-        // Salva os metadados dos arquivos anexados em "Documentação Técnica"
         if (dto.documents() != null && !dto.documents().isEmpty()) {
             for (VesselRequestDTO.DocumentDTO docDto : dto.documents()) {
                 VesselDocument doc = new VesselDocument();
@@ -93,18 +100,59 @@ public class VesselService {
             }
         }
 
-        return mapToResponseDTO(savedVessel);
+        return getVesselById(savedVessel.getIdVessel());
     }
 
+    // LISTAGEM E PESQUISA POR NOME / IMO (numeracao)
     @Transactional(readOnly = true)
-    public List<VesselResponseDTO> listAllVessels() {
-        return vesselRepository.findAll()
+    public PagedVesselResponseDTO listVessels(String nome, String status, int page, int limit) {
+        int pageIndex = Math.max(0, page - 1); // Converte página 1 (frontend) para 0 (Spring)
+        int pageSize = Math.max(1, limit);
+
+        Pageable pageable = PageRequest.of(pageIndex, pageSize, Sort.by("vesselName").ascending());
+
+        String searchFilter = (nome == null) ? "" : nome.trim();
+        String statusFilter = (status == null) ? "" : status.trim().toUpperCase();
+
+        Page<Vessel> vesselPage = vesselRepository.searchVessels(searchFilter, statusFilter, pageable);
+
+        List<VesselSummaryDTO> summaries = vesselPage.getContent()
                 .stream()
-                .map(this::mapToResponseDTO)
+                .map(this::mapToSummaryDTO)
                 .toList();
+
+        return new PagedVesselResponseDTO(
+                summaries,
+                page,
+                pageSize,
+                vesselPage.getTotalElements(),
+                vesselPage.getTotalPages()
+        );
     }
 
-    private VesselResponseDTO mapToResponseDTO(Vessel v) {
+    // BUSCAR DETALHES DE UM NAVIO ESPECÍFICO
+    @Transactional(readOnly = true)
+    public VesselResponseDTO getVesselById(UUID idVessel) {
+        Vessel v = vesselRepository.findWithCompanyByIdVessel(idVessel)
+                .orElseThrow(() -> new IllegalArgumentException("Embarcação não encontrada com o ID: " + idVessel));
+
+        long deckCount = vesselRepository.countDecksByVesselId(idVessel);
+        long cabinCount = vesselRepository.countCabinsByVesselId(idVessel);
+        long totalAreas = vesselRepository.countAreasByVesselId(idVessel);
+
+        List<VesselResponseDTO.DocumentResponseDTO> docs = documentRepository.findByVesselIdVessel(idVessel)
+                .stream()
+                .map(d -> new VesselResponseDTO.DocumentResponseDTO(
+                        d.getIdDocument(),
+                        d.getDocumentType(),
+                        d.getFileName(),
+                        d.getFileUrl(),
+                        d.getMimeType(),
+                        d.getFileSizeBytes(),
+                        d.getUploadedAt()
+                ))
+                .toList();
+
         return new VesselResponseDTO(
                 v.getIdVessel(),
                 v.getCompany().getIdCompany(),
@@ -134,10 +182,46 @@ public class VesselService {
                 v.getMainTerminal(),
                 v.getIdManager(),
                 v.getOperationalEmail(),
-                0L, // deckCount
-                0L, // cabinCount
-                0L, // totalAreas
-                v.getCreatedAt()
+                deckCount,
+                cabinCount,
+                totalAreas,
+                docs,
+                v.getCreatedAt(),
+                v.getUpdatedAt()
         );
+    }
+
+    private VesselSummaryDTO mapToSummaryDTO(Vessel v) {
+        long deckCount = vesselRepository.countDecksByVesselId(v.getIdVessel());
+        String complianceStatus = evaluateCompliance(v.getCertificateExpiryDate());
+
+        return new VesselSummaryDTO(
+                v.getIdVessel(),
+                v.getVesselName(),
+                v.getCompany().getCompanyName(),
+                v.getImoNumber(),
+                v.getPhotoUrl(),
+                v.getOperationalStatus(),
+                v.getMaxPassengerCapacity(),
+                deckCount,
+                v.getMaxCrewCapacity(),
+                v.getIdHomePort(),
+                v.getMainTerminal(),
+                v.getCertificateExpiryDate(),
+                complianceStatus
+        );
+    }
+
+    private String evaluateCompliance(LocalDate expiryDate) {
+        if (expiryDate == null) {
+            return "Sem certificado registado";
+        }
+        long daysUntilExpiry = ChronoUnit.DAYS.between(LocalDate.now(), expiryDate);
+        if (daysUntilExpiry < 0) {
+            return "Certificado vencido";
+        } else if (daysUntilExpiry <= 30) {
+            return "1 certificado vence em " + daysUntilExpiry + " dias";
+        }
+        return "Conformidade em dia";
     }
 }

@@ -3,12 +3,13 @@ package com.costaazul.api.vessel.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record VesselResponseDTO(
         UUID idVessel,
         UUID idCompany,
-        String companyName, // Preenche o "campo automático - nome da empresa"
+        String companyName,
         String vesselName,
         String nationalRegistrationNumber,
         String flag,
@@ -34,9 +35,20 @@ public record VesselResponseDTO(
         String mainTerminal,
         UUID idManager,
         String operationalEmail,
-        // Campos automáticos do Figma
         Long deckCount,
         Long cabinCount,
         Long totalAreas,
-        OffsetDateTime createdAt
-) {}
+        List<DocumentResponseDTO> documents,
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt
+) {
+    public record DocumentResponseDTO(
+            UUID idDocument,
+            String documentType,
+            String fileName,
+            String fileUrl,
+            String mimeType,
+            Long fileSizeBytes,
+            OffsetDateTime uploadedAt
+    ) {}
+}
