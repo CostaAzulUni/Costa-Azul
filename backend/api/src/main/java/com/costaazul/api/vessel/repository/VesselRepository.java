@@ -19,6 +19,11 @@ public interface VesselRepository extends JpaRepository<Vessel, UUID> {
 
     boolean existsByNationalRegistrationNumber(String nationalRegistrationNumber);
 
+    // Validações para Edição: verifica duplicidade ignorando o próprio navio que está sendo editado
+    boolean existsByImoNumberAndIdVesselNot(String imoNumber, UUID idVessel);
+
+    boolean existsByNationalRegistrationNumberAndIdVesselNot(String nationalRegistrationNumber, UUID idVessel);
+
     @EntityGraph(attributePaths = "company")
     Optional<Vessel> findWithCompanyByIdVessel(UUID idVessel);
 

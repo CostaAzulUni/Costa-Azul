@@ -60,4 +60,28 @@ public class VesselController {
     public ResponseEntity<VesselResponseDTO> getVesselById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(vesselService.getVesselById(id));
     }
+
+    @PutMapping("/{id}")
+    @Operation(
+            summary = "Editar embarcação (Completa ou por Seção)",
+            description = "Atualiza os dados de uma embarcação existente. Campos não enviados (null) permanecem com seus valores atuais."
+    )
+    public ResponseEntity<VesselResponseDTO> updateVessel(
+            @PathVariable("id") UUID id,
+            @RequestBody VesselRequestDTO requestDTO
+    ) {
+        return ResponseEntity.ok(vesselService.updateVessel(id, requestDTO));
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(
+            summary = "Editar seção específica da embarcação (Parcial)",
+            description = "Permite atualizar apenas um card ou campo isolado (ex: Base operacional & gestão) sem precisar enviar o restante dos dados."
+    )
+    public ResponseEntity<VesselResponseDTO> patchVessel(
+            @PathVariable("id") UUID id,
+            @RequestBody VesselRequestDTO requestDTO
+    ) {
+        return ResponseEntity.ok(vesselService.updateVessel(id, requestDTO));
+    }
 }
