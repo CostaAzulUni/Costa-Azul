@@ -1,0 +1,559 @@
+/* ==========================================================================
+   Visualização Individual da Embarcação (Object Page) — Figma #5932:33231
+   ========================================================================== */
+
+.vessel-details-page {
+  width: 100%;
+  min-height: 100%;
+  background-color: var(--color-gray-50);
+  display: flex;
+  flex-direction: column;
+}
+
+.vessel-details-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.vessel-details-body {
+  width: 100%;
+  max-width: var(--container-max, 1200px);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-8) var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.vessel-details-tab-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Layout de 2 colunas das Abas 01, 02 e 03 */
+.vessel-details-layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.vessel-details-main-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.vessel-details-side-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Linha de 4 KPIs da Aba 03 (Capacidade) */
+.vessel-details-kpis-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+/* Lista de Definição (Key-Value Grid dentro de SectionCard) */
+.vessel-details-dl-grid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+}
+
+.vessel-details-dl-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.vessel-details-dl-item dt {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: 500;
+  color: var(--color-gray-600);
+}
+
+.vessel-details-dl-item dd {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md);
+  line-height: var(--text-body-md--line-height);
+  font-weight: 600;
+  color: var(--color-gray-900);
+  word-break: break-word;
+}
+
+.vessel-details-dl-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.vessel-details-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.vessel-details-mono {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-gray-700);
+}
+
+/* Listas compactas da coluna lateral */
+.vessel-details-kv-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.vessel-details-kv-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-gray-100);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  color: var(--color-gray-600);
+}
+
+.vessel-details-kv-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.vessel-details-kv-row strong {
+  font-weight: 600;
+  color: var(--color-gray-900);
+  text-align: right;
+}
+
+.vessel-details-kv-row__with-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.vessel-details-side-note {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-gray-500);
+}
+
+.vessel-details-side-footer {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-outline-variant);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.vessel-details-side-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.vessel-details-side-placeholder__text {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  color: var(--color-gray-600);
+}
+
+/* Prontidão do Cadastro (Aba 01) */
+.vessel-details-readiness {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.vessel-details-readiness__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  color: var(--color-gray-700);
+}
+
+.vessel-details-progress-track {
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.vessel-details-progress-fill {
+  height: 100%;
+  background-color: var(--color-primary-500);
+  border-radius: var(--radius-pill);
+  transition: width 0.25s ease;
+}
+
+.vessel-details-readiness__list {
+  list-style: none;
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vessel-details-readiness__item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-gray-100);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-gray-50);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.vessel-details-readiness__item:hover {
+  border-color: var(--color-primary-200);
+  background-color: var(--color-primary-50);
+}
+
+.vessel-details-readiness__icon--ok {
+  color: var(--color-success-500);
+  margin-top: 2px;
+}
+
+.vessel-details-readiness__icon--pending {
+  color: var(--color-warning-500);
+  margin-top: 2px;
+}
+
+.vessel-details-readiness__texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vessel-details-readiness__texts span {
+  font-family: var(--font-sans);
+  font-size: var(--text-label-sm);
+  font-weight: 600;
+  color: var(--color-gray-900);
+}
+
+.vessel-details-readiness__texts small {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  color: var(--color-gray-600);
+}
+
+/* Cobertura SOLAS (Aba 03) */
+.vessel-details-solas-box {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Strip informativo (Aba 04) */
+.vessel-details-summary-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+}
+
+.vessel-details-summary-strip__info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  color: var(--color-gray-700);
+}
+
+.vessel-details-summary-strip__info i {
+  color: var(--color-primary-500);
+}
+
+/* Tabela de Certificados (Aba 05) */
+.vessel-details-chip-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.vessel-details-cert-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vessel-details-cert-cell__title {
+  font-family: var(--font-sans);
+  font-size: var(--text-label-md);
+  font-weight: 600;
+  color: var(--color-gray-900);
+}
+
+.vessel-details-cert-cell__code {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-gray-600);
+}
+
+/* Linha do Tempo de Histórico (Aba 08) */
+.vessel-details-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.vessel-details-timeline__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.vessel-details-timeline__marker {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.vessel-details-timeline__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.vessel-details-timeline__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.vessel-details-timeline__header strong {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md);
+  font-weight: 600;
+  color: var(--color-gray-900);
+}
+
+.vessel-details-timeline__header span {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  color: var(--color-gray-500);
+}
+
+.vessel-details-timeline__desc {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  color: var(--color-gray-700);
+}
+
+/* Card de Índice Rápido das 8 Seções (Figma E · 00 #5932:33232) */
+.vessel-details-index-card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-elev-1);
+}
+
+.vessel-details-index-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.vessel-details-index-card__eyebrow {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-primary-600);
+  margin-bottom: 4px;
+}
+
+.vessel-details-index-card__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  line-height: var(--text-h3--line-height);
+  font-weight: var(--text-h3--font-weight);
+  color: var(--color-gray-900);
+}
+
+.vessel-details-index-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.vessel-details-index-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: var(--space-4);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  background-color: var(--color-white);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.vessel-details-index-item:hover {
+  border-color: var(--color-primary-400);
+  box-shadow: var(--shadow-elev-1);
+}
+
+.vessel-details-index-item--active {
+  border-color: var(--color-primary-500);
+  background-color: var(--color-primary-50);
+}
+
+.vessel-details-index-item__top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.vessel-details-index-item__num {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  color: var(--color-primary-600);
+  background-color: var(--color-primary-50);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.vessel-details-index-item__title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.vessel-details-index-item__desc {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-gray-600);
+}
+
+/* Estados de Carregamento e Erro */
+.vessel-details-state-box {
+  max-width: var(--container-max, 1200px);
+  margin: var(--space-8) auto;
+  padding: var(--space-12) var(--space-6);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md);
+  color: var(--color-gray-600);
+}
+
+.vessel-details-state-box i {
+  font-size: 20px;
+  color: var(--color-primary-500);
+}
+
+.vessel-details-error-container {
+  max-width: var(--container-max, 1200px);
+  width: 100%;
+  margin: var(--space-8) auto;
+  padding: 0 var(--space-8);
+}
+
+/* Responsividade */
+@media (max-width: 1100px) {
+  .vessel-details-layout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vessel-details-kpis-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vessel-details-index-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .vessel-details-body {
+    padding: var(--space-4);
+  }
+
+  .vessel-details-dl-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vessel-details-kpis-row {
+    grid-template-columns: 1fr;
+  }
+
+  .vessel-details-index-grid {
+    grid-template-columns: 1fr;
+  }
+}
