@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Cartão e cabeçalho das telas de autenticação
+   ========================================================================== */
+
+.auth-card {
+  width: 100%;
+  max-width: 557px;
+  padding: 57px 50px;
+  border: var(--border-width) solid var(--color-gray-300);
+  border-radius: 10px;
+  background-color: var(--color-white);
+  box-shadow: 0 0 14px 0 var(--auth-card-shadow-color);
+}
+
+.auth-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+  max-width: 448px;
+  margin: 0 auto;
+}
+
+/* Telas baixas: cartão mais compacto para caber sem rolagem em 1366 × 768 e 1280 × 720 */
+@media (max-height: 820px) {
+  .auth-card {
+    padding: var(--space-8) 50px;
+  }
+
+  .auth-card__body {
+    gap: var(--space-6);
+  }
+}
+
+@media (max-width: 560px) {
+  .auth-card {
+    padding: var(--space-8) 20px;
+  }
+}
+
+/* --- Cabeçalho ("Boas-vindas") ------------------------------------------ */
+
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.auth-header--center {
+  text-align: center;
+}
+
+.auth-header p,
+.auth-header h1 {
+  margin: 0;
+}
+
+.auth-header__title {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  line-height: 28px;
+  font-weight: 800;
+  letter-spacing: -0.56px;
+  color: var(--color-gray-900);
+}
+
+.auth-header__description {
+  font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
+  color: var(--color-gray-600);
+}
+
+.auth-header__note {
+  font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
+  color: #000;
+}
+
+/* --- Mensagem de erro em destaque (Figma "Frame 1390") ------------------- */
+
+.auth-error {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  margin: 0;
+  padding: 10px;
+  border: 0.5px solid var(--auth-error-border);
+  border-radius: 10px;
+  background-color: var(--auth-error-surface);
+  color: var(--auth-error-text);
+  font-size: var(--text-caption);
+  line-height: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* --- Link de texto ("Esqueceu sua senha?", "Reenviar código") ------------ */
+
+.auth-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--auth-link-color);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.auth-link:focus-visible {
+  outline: none;
+  border-radius: var(--radius-xs);
+  box-shadow: 0 0 0 2px var(--color-primary-200);
+}
+
+.auth-link:disabled {
+  color: var(--color-gray-400);
+  text-decoration: none;
+  cursor: not-allowed;
+}
+
+/* Toque: amplia a área clicável dos links sem alterar o layout */
+@media (max-width: 600px) {
+  .auth-link {
+    padding: 10px 0;
+    margin: -10px 0;
+  }
+}
+
+/* --- Formulário ---------------------------------------------------------- */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.auth-footnote {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  color: var(--color-gray-600);
+  text-align: center;
+}

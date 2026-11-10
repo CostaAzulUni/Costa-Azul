@@ -1,0 +1,83 @@
+/* ==========================================================================
+   Verificação de E-mail (Figma #3971:1813)
+   ========================================================================== */
+
+.verify-email__form {
+  display: flex;
+  flex-direction: column;
+  gap: 21px;
+}
+
+.verify-email__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 73px;
+}
+
+.verify-email__intro strong {
+  font-weight: 600;
+}
+
+.verify-email__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.verify-email__confirm p {
+  margin: 0;
+}
+
+.verify-email__subtitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  line-height: 22px;
+  font-weight: 700;
+  letter-spacing: -0.22px;
+  color: var(--color-gray-900);
+}
+
+.verify-email__code {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.verify-email__resend {
+  align-self: flex-end;
+  font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
+  font-weight: 400;
+  color: var(--color-primary-400);
+}
+
+.verify-email__submit {
+  display: flex;
+  flex-direction: column;
+  gap: 45px;
+}
+
+.verify-email__timer {
+  margin: 0;
+  font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
+  color: var(--color-gray-900);
+  text-align: center;
+}
+
+.verify-email__timer strong {
+  font-weight: 600;
+  color: var(--color-primary-400);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-height: 820px) {
+  .verify-email__intro {
+    gap: var(--space-8);
+  }
+
+  .verify-email__submit {
+    gap: var(--space-6);
+  }
+}

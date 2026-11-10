@@ -1,0 +1,107 @@
+/* ==========================================================================
+   Layout de autenticação (Figma #3926:330 · frame 1440 × 1024)
+   Cores sem token equivalente em src/index.css ficam como variáveis locais.
+   ========================================================================== */
+
+.auth-layout {
+  --auth-label-color: #121517; /* Neutral/Dark */
+  --auth-link-color: #2563eb; /* "link text" */
+  --auth-required-color: #e5193b; /* Semantic/Alert/Regular */
+  --auth-card-shadow-color: #aeaeb2; /* grays/gray-2 */
+  --auth-error-text: #c90000;
+  --auth-error-surface: #ffefef;
+  --auth-error-border: rgba(201, 0, 0, 0.2);
+
+  display: grid;
+  grid-template-columns: 600px minmax(0, 1fr);
+  min-height: 100vh;
+  padding: var(--space-6) var(--space-8);
+  background-color: var(--color-white);
+  font-family: var(--font-sans);
+}
+
+.auth-layout__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0 var(--space-4) 50px 96px;
+}
+
+.auth-layout__content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) 0;
+}
+
+.auth-layout__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  color: var(--color-gray-600);
+}
+
+.auth-layout__footer p {
+  margin: 0;
+}
+
+.auth-layout__language {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-gray-700);
+  white-space: nowrap;
+}
+
+.auth-layout__language img {
+  width: 14px;
+  height: 14px;
+}
+
+/* Telas baixas (notebooks 1366 × 768 / 1280 × 720): reduz respiros verticais para evitar rolagem */
+@media (max-height: 820px) {
+  .auth-layout {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
+  }
+
+  .auth-layout .auth-brand {
+    top: var(--space-4);
+    height: calc(100vh - 32px);
+  }
+
+  .auth-layout__main {
+    padding-bottom: var(--space-4);
+  }
+
+  .auth-layout__content {
+    padding: var(--space-2) 0 var(--space-4);
+  }
+}
+
+/* Telas estreitas: o painel institucional sai e o cartão ocupa a largura disponível */
+@media (max-width: 1180px) {
+  .auth-layout {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .auth-layout .auth-brand {
+    display: none;
+  }
+
+  .auth-layout__main {
+    padding: 0;
+    min-height: calc(100vh - 48px);
+  }
+}
+
+@media (max-width: 560px) {
+  .auth-layout__footer {
+    flex-direction: column;
+  }
+}

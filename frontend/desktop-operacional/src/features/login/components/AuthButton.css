@@ -1,0 +1,42 @@
+/* Ajustes do Button (DS) para o "Button large" do Figma de autenticação:
+   texto Inter 16 regular e sombra 0 4 6 rgba(0,0,0,.08). */
+
+.ui-button.auth-button {
+  height: var(--space-12);
+  padding: 0 20px;
+  font-size: 16px;
+  line-height: 16px;
+  font-weight: 400;
+  box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.08);
+}
+
+.ui-button.auth-button .ui-button__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.ui-button.auth-button .ui-button__icon img {
+  width: 24px;
+  height: 24px;
+}
+
+.ui-button.auth-button--outline {
+  border-color: var(--color-gray-500);
+  color: var(--color-gray-800);
+}
+
+.ui-button.auth-button--outline:hover:not(:disabled) {
+  border-color: var(--color-gray-600);
+  background-color: var(--color-gray-50);
+  color: var(--color-gray-900);
+}
+
+.ui-button.auth-button:focus-visible {
+  box-shadow:
+    0 4px 6px 0 rgba(0, 0, 0, 0.08),
+    0 0 0 3px var(--color-primary-100);
+}
+
+.ui-button.auth-button--primary:disabled {
+  box-shadow: none;
+}
