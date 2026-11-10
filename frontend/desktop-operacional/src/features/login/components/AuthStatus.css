@@ -1,0 +1,87 @@
+/* ==========================================================================
+   Cartões de status de autenticação
+   Espaçamentos por variante seguem os frames do Figma:
+   - alert:       Conta bloqueada (#3964:1278) / Acesso não autorizado (#3939:4948)
+   - illustrated: Conta desativada (#3967:380) / Sessão expirada (#3977:6091)
+   - success:     Senha redefinida (#4016:12103) / Link expirado (#3967:5761)
+   ========================================================================== */
+
+.auth-status .auth-card__body {
+  gap: var(--auth-status-gap, 36px);
+}
+
+.auth-status__illustration {
+  display: flex;
+  justify-content: center;
+}
+
+.auth-status__illustration img {
+  max-width: none;
+}
+
+.auth-status__message {
+  margin: 0;
+  font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
+  color: #000;
+}
+
+.auth-status__message--center {
+  text-align: center;
+}
+
+.auth-status__message--left {
+  text-align: left;
+}
+
+.auth-status__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--auth-status-actions-gap, 24px);
+}
+
+/* Distância própria entre a orientação e os botões */
+.auth-status__message + .auth-status__actions {
+  margin-top: calc(
+    var(--auth-status-message-gap, var(--auth-status-gap, 36px)) -
+      var(--auth-status-gap, 36px)
+  );
+}
+
+/* --- alert: ícone 3D de proibição ---------------------------------------- */
+
+.auth-status--alert .auth-status__illustration img {
+  width: 96px;
+  height: 85px;
+  object-fit: cover;
+  filter: drop-shadow(-4px 2px 20px rgba(0, 0, 0, 0.25));
+}
+
+.auth-status--alert .auth-header__description {
+  font-weight: 500;
+}
+
+.auth-status--alert .auth-status__message {
+  font-weight: 500;
+}
+
+/* --- illustrated: imagem 200 × 300 --------------------------------------- */
+
+.auth-status--illustrated .auth-status__illustration img {
+  width: 200px;
+  height: 300px;
+  border-radius: 20px;
+  object-fit: cover;
+}
+
+.auth-status--illustrated .auth-card__body,
+.auth-status--success .auth-card__body {
+  padding-bottom: 50px; /* Espaço inferior previsto no frame (blocos vazios de 14 px) */
+}
+
+@media (max-height: 820px) {
+  .auth-status--illustrated .auth-status__illustration img {
+    width: 160px;
+    height: 240px;
+  }
+}

@@ -1,0 +1,183 @@
+/* ==========================================================================
+   Painel institucional das telas de autenticação (Figma #3897:9054)
+   ========================================================================== */
+
+.auth-brand {
+  position: sticky;
+  top: var(--space-6);
+  align-self: start;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: calc(100vh - 48px);
+  min-height: 640px;
+  padding: var(--space-12);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-primary-900);
+  box-shadow: var(--shadow-elev-2);
+}
+
+.auth-brand__photo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  /* O Figma estica a foto (1024 × 683) para todo o painel, sem preservar proporção */
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.auth-brand__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    rgba(2, 20, 46, 0.88) 0%,
+    rgba(5, 10, 70, 0.44) 42%,
+    rgba(2, 20, 46, 0.96) 100%
+  );
+}
+
+/* --- Identidade --------------------------------------------------------- */
+
+.auth-brand__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.auth-brand__category {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-heading);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+  color: var(--color-white);
+  white-space: nowrap;
+}
+
+.auth-brand__category-mark {
+  width: 24px;
+  height: 2px;
+  background-color: var(--color-primary-500);
+}
+
+/* --- Logotipo (Figma #3724:9686 · 372 × 70) ------------------------------ */
+
+.auth-logo {
+  position: relative;
+  flex-shrink: 0;
+  width: 372px;
+  height: 70px;
+  filter: drop-shadow(0 2px 5px rgba(24, 24, 24, 0.45));
+}
+
+.auth-logo__word {
+  position: absolute;
+  top: 0;
+  height: 70px;
+  font-family: var(--font-sans);
+  font-size: 96px;
+  font-weight: 600;
+  line-height: 70px; /* Equivale ao text-box-trim por altura de versal do Figma */
+  letter-spacing: -4.8px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.auth-logo__word--start {
+  left: 0;
+  width: 205px;
+  color: var(--color-gray-50);
+}
+
+.auth-logo__word--end {
+  left: 257px;
+  width: 128px;
+  color: var(--color-primary-500);
+}
+
+.auth-logo__mark {
+  position: absolute;
+  top: 0;
+  left: 200px;
+  width: 72px;
+  height: 70px;
+  max-width: none;
+}
+
+/* --- Mensagem institucional -------------------------------------------- */
+
+.auth-brand__message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  color: var(--color-white);
+}
+
+.auth-brand__proposition {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.auth-brand__proposition p {
+  margin: 0;
+}
+
+.auth-brand__context {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+}
+
+.auth-brand__title {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 800;
+  letter-spacing: -0.64px;
+}
+
+.auth-brand__description {
+  max-width: 426px;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
+}
+
+.auth-brand__divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.auth-brand__corporate {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-heading);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.auth-brand__corporate img {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-height: 760px) {
+  .auth-brand {
+    padding: var(--space-8);
+  }
+}
