@@ -103,37 +103,35 @@ public class VesselService {
         return getVesselById(savedVessel.getIdVessel());
     }
 
-    @Transactional(readOnly = true)
-    public PagedVesselResponseDTO listVessels(String nome, String status, int page, int limit) {
-        return listVessels(nome, status, null, null, page, limit);
-    }
-
+    // LISTAGEM PAGINADA COM FILTROS
     @Transactional(readOnly = true)
     public PagedVesselResponseDTO listVessels(
             String nome,
-            String status,
             String porto,
+            UUID idPorto,
             String conformidade,
             int page,
             int limit
     ) {
+    public PagedVesselResponseDTO listVessels(String nome, String status, int page, int limit) {
+        return listVessels(nome, status, null, null, page, limit);
+    }
         int pageIndex = Math.max(0, page - 1);
         int pageSize = Math.max(1, limit);
 
         Pageable pageable = PageRequest.of(pageIndex, pageSize, Sort.by("vesselName").ascending());
 
         String searchFilter = (nome == null) ? "" : nome.trim();
-        String statusFilter = (status == null || "ALL".equalsIgnoreCase(status.trim()))
-                ? ""
-                : status.trim().toUpperCase();
+        String portoFilter = (porto == null) ? "" : porto.trim();
+        String conformidadeFilter = normalizeConformidadeFilter(conformidade);
 
-        String normalizedPort = (porto == null || "ALL".equalsIgnoreCase(porto.trim()))
-                ? ""
-                : porto.trim();
-        if (normalizedPort.toLowerCase().startsWith("porto id ")) {
-            normalizedPort = normalizedPort.substring("porto id ".length()).trim();
-        }
-
+        Page<Vessel> vesselPage = vesselRepository.searchVessels(
+                searchFilter,
+                portoFilter,
+                idPorto,
+                conformidadeFilter,
+                pageable
+        );
         String complianceFilter = (conformidade == null || "ALL".equalsIgnoreCase(conformidade.trim()))
                 ? ""
                 : conformidade.trim().toUpperCase();
@@ -163,6 +161,21 @@ public class VesselService {
                 vesselPage.getTotalElements(),
                 vesselPage.getTotalPages()
         );
+    }
+
+    // Traduz os termos do filtro do Frontend para os valores da constraint do PostgreSQL
+    private String normalizeConformidadeFilter(String rawFilter) {
+        if (rawFilter == null || rawFilter.isBlank() || rawFilter.equalsIgnoreCase("TODOS") || rawFilter.equalsIgnoreCase("TODAS")) {
+            return "";
+        }
+
+        return switch (rawFilter.trim().toUpperCase()) {
+            case "EM_OPERACAO", "EM OPERAÇÃO", "EM OPERACAO", "ACTIVE" -> "ACTIVE";
+            case "EM_MANUTENCAO", "EM MANUTENÇÃO", "EM MANUTENCAO", "MAINTENANCE" -> "MAINTENANCE";
+            case "FORA_DE_SERVICO", "FORA DE SERVIÇO", "FORA DE SERVICO", "INACTIVE" -> "INACTIVE";
+            case "DOCA_SECA", "DRY_DOCK" -> "DRY_DOCK";
+            default -> rawFilter.trim().toUpperCase();
+        };
     }
 
     @Transactional(readOnly = true)
@@ -339,5 +352,29 @@ public class VesselService {
             return "1 certificado vence em " + daysUntilExpiry + " dias";
         }
         return "Conformidade em dia";
+    }
+
+    // REMOVER EMBARCACAO COM VALIDACAO
+    @Transactional
+    public void deleteVessel(UUID idVessel, String confirmacao) {
+        Vessel vessel = vesselRepository.findById(idVessel)
+                .orElseThrow(() -> new IllegalArgumentException("Embarcação não encontrada com o ID: " + idVessel));
+
+        // Se o frontend enviar o texto digitado no modal, valida se corresponde ao Nome, IMO ou Registro Nacional
+        if (confirmacao != null && !confirmacao.isBlank()) {
+            String input = confirmacao.trim();
+            boolean matchesName = vessel.getVesselName().equalsIgnoreCase(input);
+            boolean matchesImo = vessel.getImoNumber().equalsIgnoreCase(input)
+                    || ("IMO " + vessel.getImoNumber()).equalsIgnoreCase(input);
+            boolean matchesReg = vessel.getNationalRegistrationNumber().equalsIgnoreCase(input);
+
+            if (!matchesName && !matchesImo && !matchesReg) {
+                throw new IllegalArgumentException(
+                        "Confirmação inválida: o nome ou código informado não corresponde à embarcação selecionada."
+                );
+            }
+        }
+
+        vesselRepository.delete(vessel);
     }
 }
