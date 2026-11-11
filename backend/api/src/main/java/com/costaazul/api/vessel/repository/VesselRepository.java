@@ -19,7 +19,6 @@ public interface VesselRepository extends JpaRepository<Vessel, UUID> {
 
     boolean existsByNationalRegistrationNumber(String nationalRegistrationNumber);
 
-    // Validações para Edição: verifica duplicidade ignorando o próprio navio que está sendo editado
     boolean existsByImoNumberAndIdVesselNot(String imoNumber, UUID idVessel);
 
     boolean existsByNationalRegistrationNumberAndIdVesselNot(String nationalRegistrationNumber, UUID idVessel);
@@ -32,11 +31,15 @@ public interface VesselRepository extends JpaRepository<Vessel, UUID> {
         SELECT v FROM Vessel v
         WHERE (:nome = '' OR LOWER(v.vesselName) LIKE LOWER(CONCAT('%', :nome, '%'))
                OR LOWER(v.imoNumber) LIKE LOWER(CONCAT('%', :nome, '%')))
-          AND (:status = '' OR v.operationalStatus = :status)
+          AND (:porto = '' OR LOWER(COALESCE(v.mainTerminal, '')) LIKE LOWER(CONCAT('%', :porto, '%')))
+          AND (:idPorto IS NULL OR v.idHomePort = :idPorto)
+          AND (:conformidade = '' OR v.operationalStatus = :conformidade)
     """)
     Page<Vessel> searchVessels(
             @Param("nome") String nome,
-            @Param("status") String status,
+            @Param("porto") String porto,
+            @Param("idPorto") UUID idPorto,
+            @Param("conformidade") String conformidade,
             Pageable pageable
     );
 
