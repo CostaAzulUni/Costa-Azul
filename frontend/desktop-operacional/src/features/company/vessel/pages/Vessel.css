@@ -5,11 +5,11 @@
 .vessel-fleet-page {
   width: 100%;
   min-height: 100%;
-  background-color: var(--color-gray-50);
-  padding: var(--space-8);
+  font-family: var(--font-sans);
 }
 
 .vessel-fleet-container {
+  width: 100%;
   max-width: var(--container-max, 1200px);
   margin: 0 auto;
   display: flex;
@@ -17,7 +17,10 @@
   gap: var(--space-6);
 }
 
-/* Cabeçalho da Página */
+/* ==========================================================================
+   Cabeçalho da Página (Figma #5932:31687)
+   ========================================================================== */
+
 .vessel-fleet-header {
   display: flex;
   align-items: flex-end;
@@ -42,9 +45,9 @@
   margin: 0;
   font-family: var(--font-heading);
   font-size: var(--text-h1);
-  line-height: var(--text-h1--line-height);
-  letter-spacing: var(--text-h1--letter-spacing);
-  font-weight: var(--text-h1--font-weight);
+  line-height: var(--leading-h1);
+  letter-spacing: var(--tracking-h1);
+  font-weight: var(--font-weight-h1);
   color: var(--color-gray-900);
 }
 
@@ -52,7 +55,8 @@
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
+  line-height: var(--leading-body-md);
+  font-weight: var(--font-weight-body-md);
   color: var(--color-gray-600);
 }
 
@@ -63,20 +67,26 @@
   flex-wrap: wrap;
 }
 
-/* Linha de 4 KPIs */
+/* ==========================================================================
+   Linha de 4 KPIs (Figma #5932:31702)
+   ========================================================================== */
+
 .vessel-fleet-kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-4);
 }
 
-/* Barra de Filtros e Busca */
+/* ==========================================================================
+   Barra de Filtros, Busca e Seletor de Visualização (Figma #5932:31730)
+   ========================================================================== */
+
 .vessel-fleet-toolbar-card {
   display: flex;
   flex-direction: column;
   background-color: var(--color-white);
-  border: 1px solid var(--color-outline-variant);
-  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -91,7 +101,7 @@
 
 .vessel-fleet-toolbar__search {
   flex: 1 1 240px;
-  max-width: 320px;
+  max-width: 300px;
 }
 
 .vessel-fleet-toolbar__filters {
@@ -103,40 +113,49 @@
 }
 
 .vessel-fleet-toolbar__select {
-  min-width: 195px;
+  min-width: 190px;
 }
 
-/* Alternador Grade / Lista */
+/* Alternador Grade / Lista (32px de altura alinhado aos controles sm) */
 .vessel-fleet-view-switcher {
   display: inline-flex;
   align-items: center;
+  height: var(--space-8);
   gap: 2px;
-  padding: 3px;
+  padding: 2px;
   background-color: var(--color-gray-50);
-  border: 1px solid var(--color-outline-variant);
+  border: var(--border-width) solid var(--color-outline);
   border-radius: var(--radius-sm);
 }
 
 .vessel-fleet-view-switcher__btn {
   display: inline-flex;
   align-items: center;
+  height: 100%;
   gap: 6px;
-  padding: 5px 10px;
+  padding: 0 10px;
   border: none;
   border-radius: 6px;
   background: transparent;
   font-family: var(--font-sans);
   font-size: var(--text-label-sm);
-  line-height: var(--text-label-sm--line-height);
-  font-weight: 500;
+  line-height: var(--leading-label-sm);
+  font-weight: var(--font-weight-label-sm);
   color: var(--color-gray-600);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease,
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
     box-shadow 0.15s ease;
 }
 
 .vessel-fleet-view-switcher__btn:hover {
   color: var(--color-gray-900);
+}
+
+.vessel-fleet-view-switcher__btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-200);
 }
 
 .vessel-fleet-view-switcher__btn--active {
@@ -154,15 +173,15 @@
   gap: var(--space-3);
   padding: 10px var(--space-4);
   background-color: var(--color-gray-50);
-  border-top: 1px solid var(--color-outline-variant);
+  border-top: var(--border-width) solid var(--color-outline-variant);
   flex-wrap: wrap;
 }
 
 .vessel-fleet-applied-filters__label {
   font-family: var(--font-sans);
   font-size: var(--text-label-sm);
-  line-height: var(--text-label-sm--line-height);
-  font-weight: 500;
+  line-height: var(--leading-label-sm);
+  font-weight: var(--font-weight-label-sm);
   color: var(--color-gray-600);
 }
 
@@ -174,17 +193,29 @@
   flex: 1 1 auto;
 }
 
-/* Grade de Embarcações (Figma N · 01) */
+/* ==========================================================================
+   Grade de Embarcações — 3 colunas no desktop (Figma N · 01 #5932:31743)
+   ========================================================================== */
+
 .vessel-fleet-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
 }
 
-/* Tabela de Embarcações (Figma N · 02) */
-.vessel-fleet-table-card {
+.vessel-fleet-pagination-bar {
+  padding: var(--space-3) var(--space-4);
   background-color: var(--color-white);
-  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+}
+
+/* ==========================================================================
+   Tabela de Embarcações (Figma N · 02 #5932:31796)
+   ========================================================================== */
+
+.vessel-fleet-table-card {
+  width: 100%;
 }
 
 .vessel-table-ship {
@@ -204,7 +235,7 @@
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
-  border: 1px solid var(--color-primary-100);
+  border: var(--border-width) solid var(--color-primary-100);
 }
 
 .vessel-table-ship__thumb img {
@@ -227,7 +258,7 @@
   text-align: left;
   font-family: var(--font-sans);
   font-size: var(--text-label-md);
-  line-height: var(--text-label-md--line-height);
+  line-height: var(--leading-label-md);
   font-weight: 600;
   color: var(--color-gray-900);
   cursor: pointer;
@@ -241,7 +272,7 @@
 .vessel-table-ship__imo {
   font-family: var(--font-sans);
   font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  line-height: var(--leading-caption);
   font-variant-numeric: tabular-nums;
   color: var(--color-gray-600);
 }
@@ -255,20 +286,21 @@
 .vessel-table-trip__empty {
   font-family: var(--font-sans);
   font-size: var(--text-body-sm);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--leading-body-sm);
   color: var(--color-gray-700);
 }
 
 .vessel-table-trip__sub {
   font-family: var(--font-sans);
   font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  line-height: var(--leading-caption);
   color: var(--color-gray-500);
 }
 
 .vessel-table-placeholder {
   font-family: var(--font-sans);
   font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
   color: var(--color-gray-400);
 }
 
@@ -282,8 +314,8 @@
 .vessel-table-capacity__main {
   font-family: var(--font-sans);
   font-size: var(--text-num-md);
-  line-height: var(--text-num-md--line-height);
-  font-weight: var(--text-num-md--font-weight);
+  line-height: var(--leading-num-md);
+  font-weight: var(--font-weight-num-md);
   font-variant-numeric: tabular-nums;
   color: var(--color-gray-900);
 }
@@ -291,7 +323,7 @@
 .vessel-table-capacity__sub {
   font-family: var(--font-sans);
   font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  line-height: var(--leading-caption);
   font-variant-numeric: tabular-nums;
   color: var(--color-gray-500);
 }
@@ -299,7 +331,7 @@
 .vessel-table-port {
   font-family: var(--font-sans);
   font-size: var(--text-body-sm);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--leading-body-sm);
   color: var(--color-gray-700);
 }
 
@@ -322,6 +354,14 @@
   color: var(--color-warning-500);
 }
 
+.vessel-table-compliance--error i {
+  color: var(--color-error-500);
+}
+
+.vessel-table-compliance--neutral i {
+  color: var(--color-gray-400);
+}
+
 .vessel-table-compliance__texts {
   display: flex;
   flex-direction: column;
@@ -331,8 +371,8 @@
 .vessel-table-compliance__label {
   font-family: var(--font-sans);
   font-size: var(--text-label-sm);
-  line-height: var(--text-label-sm--line-height);
-  font-weight: 500;
+  line-height: var(--leading-label-sm);
+  font-weight: var(--font-weight-label-sm);
   color: var(--color-gray-800);
 }
 
@@ -340,10 +380,18 @@
   color: var(--color-warning-900);
 }
 
+.vessel-table-compliance--error .vessel-table-compliance__label {
+  color: var(--color-error-900);
+}
+
+.vessel-table-compliance--neutral .vessel-table-compliance__label {
+  color: var(--color-gray-600);
+}
+
 .vessel-table-compliance__date {
   font-family: var(--font-sans);
   font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  line-height: var(--leading-caption);
   font-variant-numeric: tabular-nums;
   color: var(--color-gray-500);
 }
@@ -353,7 +401,10 @@
   justify-content: flex-end;
 }
 
-/* Estados de Carregamento e Vazio */
+/* ==========================================================================
+   Estados de Carregamento e Vazio
+   ========================================================================== */
+
 .vessel-fleet-loading {
   display: flex;
   align-items: center;
@@ -361,10 +412,11 @@
   gap: var(--space-3);
   padding: var(--space-12) var(--space-6);
   background-color: var(--color-white);
-  border: 1px solid var(--color-outline-variant);
-  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
   font-family: var(--font-sans);
   font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
   color: var(--color-gray-600);
 }
 
@@ -375,22 +427,25 @@
 
 .vessel-fleet-empty-wrapper {
   background-color: var(--color-white);
-  border: 1px solid var(--color-outline-variant);
-  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
 }
 
-/* Responsividade */
+/* ==========================================================================
+   Responsividade
+   ========================================================================== */
+
 @media (max-width: 1100px) {
   .vessel-fleet-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vessel-fleet-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .vessel-fleet-page {
-    padding: var(--space-4);
-  }
-
   .vessel-fleet-kpis {
     grid-template-columns: 1fr;
   }

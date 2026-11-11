@@ -1,110 +1,126 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import {
-  Alert,
-  Badge,
-  Breadcrumb,
-  Button,
-  DataTable,
-  EmptyState,
-  FilterChip,
-  IconButton,
-  Input,
-  KPI,
-  Pagination,
-  Select,
-  VesselCard,
-  type DataTableColumn,
-  type SelectOption,
-} from "../../../../components";
-import {
-  listVessels,
-  type VesselResponseDTO,
-} from "../../../../services/vesselcreate";
+import {Alert,Badge,Breadcrumb,Button,DataTable,EmptyState,FilterChip,IconButton,Input,KPI,Pagination,Select,VesselCard,type DataTableColumn} from "../../../../components";
+import {listVessels,type PagedVesselResponseDTO,type VesselSummaryDTO} from "../../../../services/vesselcreate";
 import { formatMetric } from "../vesselFormConfig";
-import {
-  evaluateVesselCompliance,
-  formatClassificationDisplay,
-  getVesselBasePortDisplay,
-  getVesselStatusDisplay,
-  resolveSafeVesselPhotoUrl,
-  VESSEL_COMPLIANCE_FILTER_OPTIONS,
-  VESSEL_STATUS_FILTER_OPTIONS,
-  type VesselComplianceFilterValue,
-  type VesselStatusFilterValue,
-} from "../vesselListingUtils";
+import { calculateFleetKpis, evaluateVesselCompliance, extractBasePortOptions, getVesselBasePortDisplay, getVesselStatusDisplay, parseVesselApiError, resolveSafeVesselPhotoUrl, VESSEL_COMPLIANCE_FILTER_OPTIONS, VESSEL_STATUS_FILTER_OPTIONS, type VesselComplianceFilterValue, type VesselStatusFilterValue } from "../vesselListingUtils";
 import "./Vessel.css";
 
-type FleetViewMode = "grid" | "list";
+type FleetViewMode = "grid" | "list"; // Tipo de visualização da frota: grade ou lista
 
-const PAGE_SIZE_GRID = 6;
-const PAGE_SIZE_LIST = 10;
+const PAGE_SIZE_GRID = 6; // grid apenas 06
+const PAGE_SIZE_LIST = 10; // lista apenas 10
+const FLEET_SUMMARY_LIMIT = 1000; 
+const SEARCH_DEBOUNCE_MS = 300; // limite para a pesquisa. 
+
+// pagina vazia inicial para evitar undefined
+const INITIAL_PAGED_STATE: PagedVesselResponseDTO = {
+  content: [],
+  currentPage: 1,
+  pageSize: PAGE_SIZE_GRID,
+  totalElements: 0,
+  totalPages: 0,
+};
+
+// AQUI È A PAGINA PRINCIPAL DE LISTAGEM DE EMBARCAÇÕES (Frota e Viagens > Navios)
 
 export function Vessel() {
   const navigate = useNavigate();
 
-  const [vessels, setVessels] = useState<VesselResponseDTO[]>([]);
+  // Controles de busca, filtros, visualização e paginação (server-side)
+  const [searchQuery, setSearchQuery] = useState<string>(""); //busca textual (nome ou IMO)
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>(""); // captação de pesquisa
+  const [statusFilter, setStatusFilter] = useState<VesselStatusFilterValue>("ALL"); // filtro de status
+  const [basePortFilter, setBasePortFilter] = useState<string>("ALL"); // filtro de porto
+  const [complianceFilter, setComplianceFilter] = useState<VesselComplianceFilterValue>("ALL"); // filtro de conformidade/certificado
+  const [viewMode, setViewMode] = useState<FleetViewMode>("grid"); // vizualização da frota (grade ou lista)
+  const [currentPage, setCurrentPage] = useState<number>(1); // index da pagina (1, 2 ou 3)
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0); // recarregar
+
+  // Estado da página atual retornada pelo backend (GET /api/erp/vessels)
+  const [pagedData, setPagedData] = useState<PagedVesselResponseDTO>(INITIAL_PAGED_STATE);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Controles de busca, filtros e visualização (Figma #5932:31730)
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [statusFilter, setStatusFilter] =
-    useState<VesselStatusFilterValue>("ALL");
-  const [basePortFilter, setBasePortFilter] = useState<string>("ALL");
-  const [complianceFilter, setComplianceFilter] =
-    useState<VesselComplianceFilterValue>("ALL");
-  const [viewMode, setViewMode] = useState<FleetViewMode>("grid");
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  // Estado do resumo global da frota (escopo completo para KPIs e opções de Porto Base)
+  const [fleetOverviewVessels, setFleetOverviewVessels] = useState<VesselSummaryDTO[] >([]);
+  const [fleetTotalElements, setFleetTotalElements] = useState<number>(0);
+  const [isOverviewLoading, setIsOverviewLoading] = useState<boolean>(true);
 
-  const parseFleetError = (error: unknown): string => {
-    let message =
-      "Não foi possível carregar a listagem de embarcações. Verifique sua conexão com o servidor.";
-    if (axios.isAxiosError(error)) {
-      const status = error.response?.status;
-      if (status === 401 || status === 403) {
-        message =
-          "Sua sessão expirou ou você não possui permissão para consultar as embarcações.";
-      } else if (
-        typeof error.response?.data === "object" &&
-        error.response?.data !== null &&
-        "message" in error.response.data &&
-        typeof (error.response.data as { message?: unknown }).message ===
-          "string"
-      ) {
-        message = (error.response.data as { message: string }).message;
-      }
-    }
-    return message;
-  };
+  const pageSize = viewMode === "grid" ? PAGE_SIZE_GRID : PAGE_SIZE_LIST;
 
-  const fetchFleet = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-    try {
-      const response = await listVessels();
-      setVessels(Array.isArray(response) ? response : []);
-    } catch (error: unknown) {
-      setErrorMessage(parseFleetError(error));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  // Isso aqui é para evitar uma requiusição a cada tecla digitada na busca, e sim apenas quando o usuário parar de digitar por 300ms
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    const timer = window.setTimeout(() => {
+      setDebouncedSearchQuery((prev) => {
+        if (prev !== trimmed) {
+          setIsLoading(true);
+          setErrorMessage(null);
+        }
+        return trimmed;
+      });
+    }, SEARCH_DEBOUNCE_MS);
 
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
+  //parei aqui
+
+  // Carrega o panorama completo da frota (sem filtros) para cálculo fidedigno dos KPIs e opções de Porto Base
   useEffect(() => {
     let cancelled = false;
 
-    listVessels()
+    listVessels({ page: 1, limit: FLEET_SUMMARY_LIMIT })
       .then((response) => {
         if (!cancelled) {
-          setVessels(Array.isArray(response) ? response : []);
-          setErrorMessage(null);
+          setFleetOverviewVessels(response.content);
+          setFleetTotalElements(response.totalElements);
         }
+      })
+      .catch(() => {
+        // Erros de conexão já são exibidos pelo efeito principal da listagem paginada
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsOverviewLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshTrigger]);
+
+  // Busca paginada no servidor sempre que filtros, página, tamanho de página ou atualização mudarem
+  useEffect(() => {
+    let cancelled = false;
+
+    listVessels({
+      nome: debouncedSearchQuery || undefined,
+      status: statusFilter !== "ALL" ? statusFilter : undefined,
+      porto: basePortFilter !== "ALL" ? basePortFilter : undefined,
+      conformidade: complianceFilter !== "ALL" ? complianceFilter : undefined,
+      page: currentPage,
+      limit: pageSize,
+    })
+      .then((response) => {
+        if (cancelled) return;
+
+        // Se a página solicitada ficou além do total de páginas após alteração de dados, recua para a última página válida
+        if (response.totalPages > 0 && currentPage > response.totalPages) {
+          setCurrentPage(response.totalPages);
+          return;
+        }
+
+        setPagedData(response);
+        setErrorMessage(null);
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setErrorMessage(parseFleetError(error));
+          setErrorMessage(parseVesselApiError(error));
         }
       })
       .finally(() => {
@@ -116,144 +132,37 @@ export function Vessel() {
     return () => {
       cancelled = true;
     };
+  }, [
+    debouncedSearchQuery,
+    statusFilter,
+    basePortFilter,
+    complianceFilter,
+    currentPage,
+    pageSize,
+    refreshTrigger,
+  ]);
+
+  const startListingRequest = useCallback(() => {
+    setIsLoading(true);
+    setErrorMessage(null);
   }, []);
 
-  // Opções dinâmicas de Porto Base extraídas dos dados reais cadastrados
-  const basePortOptions = useMemo<SelectOption[]>(() => {
-    const uniquePorts = new Set<string>();
-    vessels.forEach((vessel) => {
-      const portLabel = getVesselBasePortDisplay(vessel);
-      if (portLabel !== "—") {
-        uniquePorts.add(portLabel);
-      }
-    });
+  const handleRefreshFleet = useCallback(() => {
+    setIsLoading(true);
+    setIsOverviewLoading(true);
+    setErrorMessage(null);
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
 
-    const sortedPorts = Array.from(uniquePorts).sort((a, b) =>
-      a.localeCompare(b, "pt-BR")
-    );
+  const basePortOptions = useMemo(
+    () => extractBasePortOptions(fleetOverviewVessels, basePortFilter),
+    [fleetOverviewVessels, basePortFilter]
+  );
 
-    return [
-      { label: "Todos", value: "ALL" },
-      ...sortedPorts.map((port) => ({ label: port, value: port })),
-    ];
-  }, [vessels]);
-
-  // Cálculo dos KPIs reais da frota (Figma #5932:31702)
-  const fleetKpis = useMemo(() => {
-    const totalCount = vessels.length;
-    let activeCount = 0;
-    let maintenanceCount = 0;
-    let inactiveCount = 0;
-    let totalPassengerCapacity = 0;
-    let expiredCertificatesCount = 0;
-    let expiringSoonCertificatesCount = 0;
-
-    vessels.forEach((vessel) => {
-      const status = (vessel.operationalStatus ?? "").trim().toUpperCase();
-      if (status === "ACTIVE") {
-        activeCount += 1;
-      } else if (status === "MAINTENANCE" || status === "DRY_DOCK") {
-        maintenanceCount += 1;
-      } else {
-        inactiveCount += 1;
-      }
-
-      if (
-        vessel.maxPassengerCapacity !== null &&
-        !Number.isNaN(vessel.maxPassengerCapacity)
-      ) {
-        totalPassengerCapacity += vessel.maxPassengerCapacity;
-      }
-
-      const compliance = evaluateVesselCompliance(vessel.certificateExpiryDate);
-      if (compliance.state === "expired") {
-        expiredCertificatesCount += 1;
-      } else if (compliance.state === "expiring_soon") {
-        expiringSoonCertificatesCount += 1;
-      }
-    });
-
-    const totalComplianceAlerts =
-      expiredCertificatesCount + expiringSoonCertificatesCount;
-
-    return {
-      totalCount,
-      activeCount,
-      maintenanceCount,
-      inactiveCount,
-      totalPassengerCapacity,
-      expiredCertificatesCount,
-      expiringSoonCertificatesCount,
-      totalComplianceAlerts,
-    };
-  }, [vessels]);
-
-  // Filtragem real das embarcações no cliente
-  const filteredVessels = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
-
-    return vessels.filter((vessel) => {
-      if (normalizedQuery) {
-        const matchesName = (vessel.vesselName ?? "")
-          .toLowerCase()
-          .includes(normalizedQuery);
-        const matchesImo = (vessel.imoNumber ?? "")
-          .toLowerCase()
-          .includes(normalizedQuery);
-        const matchesRegistration = (vessel.nationalRegistrationNumber ?? "")
-          .toLowerCase()
-          .includes(normalizedQuery);
-        const matchesCompany = (vessel.companyName ?? "")
-          .toLowerCase()
-          .includes(normalizedQuery);
-
-        if (
-          !matchesName &&
-          !matchesImo &&
-          !matchesRegistration &&
-          !matchesCompany
-        ) {
-          return false;
-        }
-      }
-
-      if (statusFilter !== "ALL") {
-        const vesselStatus = (vessel.operationalStatus ?? "")
-          .trim()
-          .toUpperCase();
-        if (vesselStatus !== statusFilter) {
-          return false;
-        }
-      }
-
-      if (basePortFilter !== "ALL") {
-        const vesselPort = getVesselBasePortDisplay(vessel);
-        if (vesselPort !== basePortFilter) {
-          return false;
-        }
-      }
-
-      if (complianceFilter !== "ALL") {
-        const compliance = evaluateVesselCompliance(
-          vessel.certificateExpiryDate
-        );
-        if (compliance.state !== complianceFilter) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [vessels, searchQuery, statusFilter, basePortFilter, complianceFilter]);
-
-  const pageSize = viewMode === "grid" ? PAGE_SIZE_GRID : PAGE_SIZE_LIST;
-  const totalPages = Math.max(1, Math.ceil(filteredVessels.length / pageSize));
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-
-  const paginatedVessels = useMemo(() => {
-    const startIndex = (safeCurrentPage - 1) * pageSize;
-    return filteredVessels.slice(startIndex, startIndex + pageSize);
-  }, [filteredVessels, safeCurrentPage, pageSize]);
+  const fleetKpis = useMemo(
+    () => calculateFleetKpis(fleetOverviewVessels, fleetTotalElements),
+    [fleetOverviewVessels, fleetTotalElements]
+  );
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 ||
@@ -261,23 +170,25 @@ export function Vessel() {
     basePortFilter !== "ALL" ||
     complianceFilter !== "ALL";
 
-  const handleClearAllFilters = () => {
+  const handleClearAllFilters = useCallback(() => {
+    startListingRequest();
     setSearchQuery("");
+    setDebouncedSearchQuery("");
     setStatusFilter("ALL");
     setBasePortFilter("ALL");
     setComplianceFilter("ALL");
     setCurrentPage(1);
-  };
+  }, [startListingRequest]);
 
   const handleOpenVessel = useCallback(
-    (vessel: VesselResponseDTO) => {
-      navigate(`/vessel/${vessel.idVessel}`, { state: { vessel } });
+    (vessel: VesselSummaryDTO) => {
+      navigate(`/vessel/${vessel.idVessel}`);
     },
     [navigate]
   );
 
   // Colunas da visualização em Lista (Figma N · 02 #5932:31796)
-  const tableColumns = useMemo<DataTableColumn<VesselResponseDTO>[]>(
+  const tableColumns = useMemo<DataTableColumn<VesselSummaryDTO>[]>(
     () => [
       {
         key: "vessel",
@@ -352,6 +263,7 @@ export function Vessel() {
         key: "capacity",
         header: "Capacidade",
         align: "right",
+        tabular: true,
         width: "120px",
         render: (vessel) => (
           <div className="vessel-table-capacity">
@@ -367,7 +279,7 @@ export function Vessel() {
       {
         key: "basePort",
         header: "Porto base",
-        width: "160px",
+        width: "170px",
         render: (vessel) => (
           <span className="vessel-table-port">
             {getVesselBasePortDisplay(vessel)}
@@ -377,7 +289,7 @@ export function Vessel() {
       {
         key: "compliance",
         header: "Conformidade",
-        width: "190px",
+        width: "200px",
         render: (vessel) => {
           const compliance = evaluateVesselCompliance(
             vessel.certificateExpiryDate
@@ -386,14 +298,7 @@ export function Vessel() {
             <div
               className={`vessel-table-compliance vessel-table-compliance--${compliance.cardTone}`}
             >
-              <i
-                className={`pi ${
-                  compliance.cardTone === "ok"
-                    ? "pi-check-circle"
-                    : "pi-exclamation-triangle"
-                }`}
-                aria-hidden="true"
-              />
+              <i className={`pi ${compliance.iconName}`} aria-hidden="true" />
               <div className="vessel-table-compliance__texts">
                 <span className="vessel-table-compliance__label">
                   {compliance.shortLabel}
@@ -412,7 +317,7 @@ export function Vessel() {
         key: "actions",
         header: "Ações",
         align: "right",
-        width: "84px",
+        width: "76px",
         render: (vessel) => (
           <div className="vessel-table-actions">
             <IconButton
@@ -455,6 +360,42 @@ export function Vessel() {
     return parts.join(", ");
   }, [searchQuery, statusFilter, basePortFilter, complianceFilter]);
 
+  const vessels = pagedData.content;
+  const totalElements = pagedData.totalElements;
+  const totalPages = Math.max(1, pagedData.totalPages);
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const isEmptyFleet =
+    !isLoading &&
+    !errorMessage &&
+    totalElements === 0 &&
+    !hasActiveFilters &&
+    fleetTotalElements === 0;
+
+  const isEmptyFilteredSearch =
+    !isLoading &&
+    !errorMessage &&
+    totalElements === 0 &&
+    (hasActiveFilters || fleetTotalElements > 0);
+
+  const kpiComplianceTone =
+    fleetKpis.expiredCertificatesCount > 0
+      ? "error"
+      : fleetKpis.expiringSoonCertificatesCount > 0
+        ? "warning"
+        : fleetKpis.totalCount > 0 && fleetKpis.missingCertificatesCount === 0
+          ? "success"
+          : "neutral";
+
+  const kpiComplianceHighlightText =
+    fleetKpis.totalCount === 0
+      ? "Sem registros"
+      : fleetKpis.totalComplianceAlerts > 0
+        ? `${fleetKpis.expiredCertificatesCount} vencido(s) · ${fleetKpis.expiringSoonCertificatesCount} em até 30d`
+        : fleetKpis.missingCertificatesCount > 0
+          ? `${fleetKpis.missingCertificatesCount} sem validade`
+          : "Conformidade em dia";
+
   return (
     <div className="vessel-fleet-page">
       <div className="vessel-fleet-container">
@@ -462,7 +403,10 @@ export function Vessel() {
         <header className="vessel-fleet-header">
           <div className="vessel-fleet-header__left">
             <Breadcrumb
-              items={[{ label: "Frota e Viagens" }, { label: "Navios" }]}
+              items={[
+                { label: "Frota e Viagens", to: "/vessel" },
+                { label: "Navios" },
+              ]}
             />
             <div className="vessel-fleet-header__titles">
               <h1 className="vessel-fleet-header__title">Navios</h1>
@@ -479,7 +423,7 @@ export function Vessel() {
               variant="secondary"
               size="md"
               icon="pi-refresh"
-              onClick={() => void fetchFleet()}
+              onClick={handleRefreshFleet}
               disabled={isLoading}
             >
               Atualizar
@@ -504,33 +448,36 @@ export function Vessel() {
           <KPI
             label="Embarcações em operação"
             icon="pi-compass"
-            value={isLoading ? "—" : String(fleetKpis.activeCount)}
-            highlightText={
-              !isLoading ? `de ${fleetKpis.totalCount} na frota` : undefined
-            }
-            highlightTone="neutral"
+            loading={isOverviewLoading}
+            value={String(fleetKpis.activeCount)}
+            highlightText={`de ${fleetKpis.totalCount} na frota`}
+            highlightTone={fleetKpis.activeCount > 0 ? "success" : "neutral"}
             detailText={
-              isLoading
-                ? "Carregando frota..."
-                : `${fleetKpis.maintenanceCount} em manutenção · ${fleetKpis.inactiveCount} fora de serviço`
+              fleetKpis.totalCount > 0
+                ? `${fleetKpis.maintenanceCount} em manutenção · ${fleetKpis.inactiveCount} fora de serviço`
+                : "Nenhuma embarcação cadastrada"
             }
           />
 
           <KPI
             label="Viagens em curso"
             icon="pi-send"
+            loading={isOverviewLoading}
             value="—"
+            highlightText="Não integrado"
+            highlightTone="neutral"
             detailText="Módulo de viagens ainda não integrado à API"
           />
 
           <KPI
             label="Passageiros a bordo"
             icon="pi-users"
+            loading={isOverviewLoading}
             value="—"
             highlightText={
-              !isLoading && fleetKpis.totalPassengerCapacity > 0
+              fleetKpis.totalPassengerCapacity > 0
                 ? `Cap. frota: ${fleetKpis.totalPassengerCapacity.toLocaleString("pt-BR")}`
-                : undefined
+                : "Sem capacidade nominal"
             }
             highlightTone="neutral"
             detailText="Embarque em tempo real indisponível no backend"
@@ -539,18 +486,15 @@ export function Vessel() {
           <KPI
             label="Alertas de conformidade"
             icon="pi-shield"
-            value={isLoading ? "—" : String(fleetKpis.totalComplianceAlerts)}
-            highlightText={
-              !isLoading
-                ? fleetKpis.totalComplianceAlerts > 0
-                  ? `${fleetKpis.expiredCertificatesCount} vencido(s) · ${fleetKpis.expiringSoonCertificatesCount} vence(m) em até 30d`
-                  : "Conformidade em dia"
-                : undefined
+            loading={isOverviewLoading}
+            value={String(fleetKpis.totalComplianceAlerts)}
+            highlightText={kpiComplianceHighlightText}
+            highlightTone={kpiComplianceTone}
+            detailText={
+              fleetKpis.missingCertificatesCount > 0
+                ? `${fleetKpis.missingCertificatesCount} certificado(s) sem data informada`
+                : "Monitoramento da validade do certificado ISM"
             }
-            highlightTone={
-              fleetKpis.totalComplianceAlerts > 0 ? "warning" : "success"
-            }
-            detailText="Monitoramento da validade do certificado ISM"
           />
         </section>
 
@@ -568,10 +512,15 @@ export function Vessel() {
                 leftIcon="pi-search"
                 value={searchQuery}
                 onChange={(e) => {
-                  setSearchQuery(e.target.value);
+                  const nextValue = e.target.value;
+                  setSearchQuery(nextValue);
                   setCurrentPage(1);
+                  if (!nextValue.trim()) {
+                    startListingRequest();
+                    setDebouncedSearchQuery("");
+                  }
                 }}
-                aria-label="Buscar embarcação por nome, IMO ou registro"
+                aria-label="Buscar embarcação por nome ou número IMO"
               />
             </div>
 
@@ -583,6 +532,7 @@ export function Vessel() {
                   options={VESSEL_STATUS_FILTER_OPTIONS}
                   value={statusFilter}
                   onChange={(e) => {
+                    startListingRequest();
                     setStatusFilter(e.target.value as VesselStatusFilterValue);
                     setCurrentPage(1);
                   }}
@@ -597,6 +547,7 @@ export function Vessel() {
                   options={basePortOptions}
                   value={basePortFilter}
                   onChange={(e) => {
+                    startListingRequest();
                     setBasePortFilter(e.target.value);
                     setCurrentPage(1);
                   }}
@@ -611,6 +562,7 @@ export function Vessel() {
                   options={VESSEL_COMPLIANCE_FILTER_OPTIONS}
                   value={complianceFilter}
                   onChange={(e) => {
+                    startListingRequest();
                     setComplianceFilter(
                       e.target.value as VesselComplianceFilterValue
                     );
@@ -634,8 +586,11 @@ export function Vessel() {
                     : ""
                 }`}
                 onClick={() => {
-                  setViewMode("grid");
-                  setCurrentPage(1);
+                  if (viewMode !== "grid") {
+                    startListingRequest();
+                    setViewMode("grid");
+                    setCurrentPage(1);
+                  }
                 }}
                 aria-pressed={viewMode === "grid"}
               >
@@ -650,8 +605,11 @@ export function Vessel() {
                     : ""
                 }`}
                 onClick={() => {
-                  setViewMode("list");
-                  setCurrentPage(1);
+                  if (viewMode !== "list") {
+                    startListingRequest();
+                    setViewMode("list");
+                    setCurrentPage(1);
+                  }
                 }}
                 aria-pressed={viewMode === "list"}
               >
@@ -675,7 +633,9 @@ export function Vessel() {
                     icon="pi-times"
                     title="Remover filtro de busca"
                     onClick={() => {
+                      startListingRequest();
                       setSearchQuery("");
+                      setDebouncedSearchQuery("");
                       setCurrentPage(1);
                     }}
                   >
@@ -689,6 +649,7 @@ export function Vessel() {
                     icon="pi-times"
                     title="Remover filtro de status"
                     onClick={() => {
+                      startListingRequest();
                       setStatusFilter("ALL");
                       setCurrentPage(1);
                     }}
@@ -706,6 +667,7 @@ export function Vessel() {
                     icon="pi-times"
                     title="Remover filtro de porto base"
                     onClick={() => {
+                      startListingRequest();
                       setBasePortFilter("ALL");
                       setCurrentPage(1);
                     }}
@@ -720,6 +682,7 @@ export function Vessel() {
                     icon="pi-times"
                     title="Remover filtro de conformidade"
                     onClick={() => {
+                      startListingRequest();
                       setComplianceFilter("ALL");
                       setCurrentPage(1);
                     }}
@@ -751,12 +714,12 @@ export function Vessel() {
             title="Falha ao carregar embarcações"
             description={errorMessage}
             actionLabel="Tentar novamente"
-            onAction={() => void fetchFleet()}
+            onAction={handleRefreshFleet}
           />
         )}
 
-        {/* Estado de Carregamento */}
-        {isLoading && !errorMessage && (
+        {/* Estado de Carregamento no modo Grade */}
+        {isLoading && !errorMessage && viewMode === "grid" && (
           <div className="vessel-fleet-loading" role="status" aria-live="polite">
             <i className="pi pi-spin pi-spinner" aria-hidden="true" />
             <span>Carregando embarcações cadastradas...</span>
@@ -764,7 +727,7 @@ export function Vessel() {
         )}
 
         {/* Estado Vazio: nenhuma embarcação cadastrada no banco */}
-        {!isLoading && !errorMessage && vessels.length === 0 && (
+        {isEmptyFleet && (
           <div className="vessel-fleet-empty-wrapper">
             <EmptyState
               icon="pi-compass"
@@ -778,121 +741,129 @@ export function Vessel() {
         )}
 
         {/* Estado Vazio: busca ou filtros não encontraram resultados (Figma N · 03 #5932:32022) */}
-        {!isLoading &&
-          !errorMessage &&
-          vessels.length > 0 &&
-          filteredVessels.length === 0 && (
-            <div className="vessel-fleet-empty-wrapper">
-              <EmptyState
-                icon="pi-search"
-                title="Nenhuma embarcação encontrada"
-                description={`Não há embarcações com os filtros atuais (${activeFilterSummaryText}). Ajuste os filtros ou limpe tudo para voltar à lista completa.`}
-                secondaryActionLabel="Limpar filtros"
-                onSecondaryAction={handleClearAllFilters}
-                actionLabel="Cadastrar embarcação"
-                actionIcon="pi-plus"
-                onAction={() => navigate("/vessel/create")}
-              />
-            </div>
-          )}
+        {isEmptyFilteredSearch && (
+          <div className="vessel-fleet-empty-wrapper">
+            <EmptyState
+              icon="pi-search"
+              title="Nenhuma embarcação encontrada"
+              description={`Não há embarcações com os filtros atuais (${activeFilterSummaryText}). Ajuste os filtros ou limpe tudo para voltar à lista completa.`}
+              secondaryActionLabel="Limpar filtros"
+              onSecondaryAction={handleClearAllFilters}
+              actionLabel="Cadastrar embarcação"
+              actionIcon="pi-plus"
+              onAction={() => navigate("/vessel/create")}
+            />
+          </div>
+        )}
 
         {/* Listagem em Grade (Figma N · 01 #5932:31743) */}
         {!isLoading &&
           !errorMessage &&
-          filteredVessels.length > 0 &&
+          vessels.length > 0 &&
           viewMode === "grid" && (
-            <section
-              className="vessel-fleet-grid"
-              aria-label="Grade de embarcações"
-            >
-              {paginatedVessels.map((vessel) => {
-                const status = getVesselStatusDisplay(vessel.operationalStatus);
-                const compliance = evaluateVesselCompliance(
-                  vessel.certificateExpiryDate
-                );
-                const basePort = getVesselBasePortDisplay(vessel);
-                const societyLabel = formatClassificationDisplay(
-                  vessel.classificationSociety
-                );
+            <>
+              <section
+                className="vessel-fleet-grid"
+                aria-label="Grade de embarcações"
+              >
+                {vessels.map((vessel) => {
+                  const status = getVesselStatusDisplay(
+                    vessel.operationalStatus
+                  );
+                  const compliance = evaluateVesselCompliance(
+                    vessel.certificateExpiryDate
+                  );
+                  const basePort = getVesselBasePortDisplay(vessel);
 
-                const idleDetails = [
-                  basePort !== "—" ? `Base: ${basePort}` : null,
-                  societyLabel !== "—" ? `Classe: ${societyLabel}` : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ");
+                  return (
+                    <VesselCard
+                      key={vessel.idVessel}
+                      name={vessel.vesselName}
+                      subtitle={vessel.companyName || "Empresa não informada"}
+                      imo={vessel.imoNumber || "—"}
+                      photoUrl={resolveSafeVesselPhotoUrl(vessel.photoUrl)}
+                      status={{
+                        label: status.label,
+                        tone: status.tone,
+                      }}
+                      metrics={[
+                        {
+                          label: "Passageiros",
+                          value: formatMetric(vessel.maxPassengerCapacity),
+                        },
+                        {
+                          label: "Conveses",
+                          value: String(vessel.deckCount ?? 0),
+                        },
+                        {
+                          label: "Tripulação",
+                          value: formatMetric(vessel.maxCrewCapacity),
+                        },
+                      ]}
+                      idleInfo={{
+                        icon: "pi-anchor",
+                        text:
+                          basePort !== "—"
+                            ? `Sem viagem ativa · Base: ${basePort}`
+                            : "Sem viagem ativa · Porto base não informado",
+                      }}
+                      compliance={{
+                        label: compliance.cardLabel,
+                        tone: compliance.badgeTone,
+                      }}
+                      openLabel="Abrir ficha"
+                      onOpen={() => handleOpenVessel(vessel)}
+                    />
+                  );
+                })}
+              </section>
 
-                return (
-                  <VesselCard
-                    key={vessel.idVessel}
-                    name={vessel.vesselName}
-                    subtitle={vessel.companyName || "Empresa não informada"}
-                    imo={vessel.imoNumber || "—"}
-                    photoUrl={resolveSafeVesselPhotoUrl(vessel.photoUrl)}
-                    status={{
-                      label: status.label,
-                      tone: status.tone,
-                    }}
-                    metrics={[
-                      {
-                        label: "Passageiros",
-                        value: formatMetric(vessel.maxPassengerCapacity),
-                      },
-                      {
-                        label: "Conveses",
-                        value: String(vessel.deckCount ?? 0),
-                      },
-                      {
-                        label: "Tripulação",
-                        value: formatMetric(vessel.maxCrewCapacity),
-                      },
-                    ]}
-                    idleInfo={{
-                      icon: "pi-anchor",
-                      text:
-                        idleDetails ||
-                        `Sem viagem ativa · Registro: ${vessel.nationalRegistrationNumber || "—"}`,
-                    }}
-                    compliance={{
-                      label: compliance.cardLabel,
-                      tone: compliance.badgeTone,
-                    }}
-                    openLabel="Abrir ficha"
-                    onOpen={() => handleOpenVessel(vessel)}
-                  />
-                );
-              })}
-            </section>
+              <div className="vessel-fleet-pagination-bar">
+                <Pagination
+                  page={safeCurrentPage}
+                  totalPages={totalPages}
+                  totalItems={totalElements}
+                  pageSize={pageSize}
+                  itemLabel="embarcações"
+                  disabled={isLoading}
+                  onPageChange={(page) => {
+                    startListingRequest();
+                    setCurrentPage(page);
+                  }}
+                />
+              </div>
+            </>
           )}
 
-        {/* Listagem em Tabela (Figma N · 02 #5932:31796) */}
-        {!isLoading &&
-          !errorMessage &&
-          filteredVessels.length > 0 &&
+        {/* Listagem em Tabela com Paginação integrada no rodapé (Figma N · 02 #5932:31796) */}
+        {!errorMessage &&
+          (isLoading || vessels.length > 0) &&
           viewMode === "list" && (
             <section
               className="vessel-fleet-table-card"
               aria-label="Tabela de embarcações"
             >
-              <DataTable<VesselResponseDTO>
+              <DataTable<VesselSummaryDTO>
                 columns={tableColumns}
-                data={paginatedVessels}
+                data={vessels}
+                loading={isLoading}
+                skeletonRows={6}
                 rowKey={(vessel) => vessel.idVessel}
+                pagination={{
+                  page: safeCurrentPage,
+                  totalPages,
+                  totalItems: totalElements,
+                  pageSize,
+                  itemLabel: "embarcações",
+                  disabled: isLoading,
+                  onPageChange: (page) => {
+                    startListingRequest();
+                    setCurrentPage(page);
+                  },
+                }}
               />
             </section>
           )}
-
-        {/* Paginação (Figma #5932:31786) */}
-        {!isLoading && !errorMessage && filteredVessels.length > 0 && (
-          <Pagination
-            page={safeCurrentPage}
-            totalPages={totalPages}
-            totalItems={filteredVessels.length}
-            pageSize={pageSize}
-            itemLabel="embarcações"
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        )}
       </div>
     </div>
   );

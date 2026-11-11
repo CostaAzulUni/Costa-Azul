@@ -1,6 +1,5 @@
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState, type ChangeEvent } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import {
   Alert,
   Badge,
@@ -8,19 +7,37 @@ import {
   DataTable,
   EmptyState,
   FilterChip,
+  Input,
   KPI,
+  Modal,
   SectionCard,
+  Select,
   TabPanel,
+  Toast,
   VesselHeader,
   type BadgeTone,
   type DataTableColumn,
   type TabItem,
+  type ToastVariant,
 } from "../../../../components";
 import {
-  listVessels,
+  getVesselById,
+  updateVessel,
+  type VesselRequestDTO,
   type VesselResponseDTO,
 } from "../../../../services/vesselcreate";
-import { formatMetric } from "../vesselFormConfig";
+import {
+  CLASSIFICATION_SOCIETY_OPTIONS,
+  INITIAL_VESSEL_FORM_DATA,
+  OPERATIONAL_STATUS_OPTIONS,
+  PROPULSION_TYPE_OPTIONS,
+  VESSEL_FLAG_OPTIONS,
+  formatMetric,
+  validateVesselStep,
+  type VesselFieldErrors,
+  type VesselFieldKey,
+  type VesselFormData,
+} from "../vesselFormConfig";
 import {
   evaluateVesselCompliance,
   evaluateVesselProfileReadiness,
@@ -30,12 +47,14 @@ import {
   formatPropulsionDisplay,
   getVesselBasePortDisplay,
   getVesselStatusDisplay,
+  parseVesselApiError,
   resolveSafeVesselPhotoUrl,
 } from "../vesselListingUtils";
 import "./VesselDetails.css";
 
 interface VesselLocationState {
   vessel?: VesselResponseDTO;
+  updatedToast?: boolean;
 }
 
 interface StatutoryCertificateRow {
@@ -81,11 +100,11 @@ export function VesselDetails() {
   );
 
   const vessel = useMemo<VesselResponseDTO | null>(() => {
-    if (routeState?.vessel && (!id || routeState.vessel.idVessel === id)) {
-      return routeState.vessel;
-    }
     if (fetchedVessel && (!id || fetchedVessel.idVessel === id)) {
       return fetchedVessel;
+    }
+    if (routeState?.vessel && (!id || routeState.vessel.idVessel === id)) {
+      return routeState.vessel;
     }
     return null;
   }, [routeState?.vessel, fetchedVessel, id]);
@@ -95,6 +114,30 @@ export function VesselDetails() {
   const [certificateFilter, setCertificateFilter] =
     useState<CertificateFilterType>("ALL");
   const [tripFilter, setTripFilter] = useState<TripFilterType>("ALL");
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [editFormData, setEditFormData] = useState<VesselFormData>(
+    INITIAL_VESSEL_FORM_DATA
+  );
+  const [editErrors, setEditErrors] = useState<VesselFieldErrors>({});
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [deleteLimitationMessage, setDeleteLimitationMessage] = useState<
+    string | null
+  >(null);
+  const [toastFeedback, setToastFeedback] = useState<{
+    variant: ToastVariant;
+    message: string;
+    description?: string;
+  } | null>(() =>
+    routeState?.updatedToast
+      ? {
+          variant: "success",
+          message: "Alterações salvas",
+          description:
+            "Os dados cadastrais da embarcação foram atualizados com sucesso.",
+        }
+      : null
+  );
 
   useEffect(() => {
     if (!id || vessel) {
@@ -103,34 +146,21 @@ export function VesselDetails() {
 
     let cancelled = false;
 
-    listVessels()
-      .then((allVessels) => {
+    getVesselById(id)
+      .then((found) => {
         if (cancelled) return;
-        const found = (Array.isArray(allVessels) ? allVessels : []).find(
-          (item) => item.idVessel === id
-        );
-        if (found) {
-          setFetchedVessel(found);
-          setErrorMessage(null);
-        } else {
-          setFetchedVessel(null);
-          setErrorMessage(
-            "A embarcação solicitada não foi encontrada na frota da sua empresa."
-          );
-        }
+        setFetchedVessel(found);
+        setErrorMessage(null);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
-        let message =
-          "Não foi possível carregar os dados da embarcação. Verifique sua conexão.";
-        if (axios.isAxiosError(error)) {
-          const status = error.response?.status;
-          if (status === 401 || status === 403) {
-            message =
-              "Sua sessão expirou ou você não tem permissão para visualizar esta embarcação.";
-          }
-        }
-        setErrorMessage(message);
+        setFetchedVessel(null);
+        setErrorMessage(
+          parseVesselApiError(
+            error,
+            "Não foi possível carregar os dados da embarcação. Verifique sua conexão."
+          )
+        );
       })
       .finally(() => {
         if (!cancelled) {
@@ -408,17 +438,220 @@ export function VesselDetails() {
       ? Math.round((lifeboatCap / totalAboard) * 100)
       : null;
 
+  const parseNullableNumber = (
+    event: ChangeEvent<HTMLInputElement>
+  ): number | null => {
+    const raw = event.target.value;
+    return raw === "" ? null : Number(raw);
+  };
+
+  const handleStartEdit = (targetTab?: string) => {
+    setEditFormData({
+      vesselName: vessel.vesselName ?? "",
+      nationalRegistrationNumber: vessel.nationalRegistrationNumber ?? "",
+      flag: vessel.flag ?? "",
+      imoNumber: vessel.imoNumber ?? "",
+      yearBuilt: vessel.yearBuilt ?? null,
+      grossTonnage: vessel.grossTonnage ?? null,
+      lengthOverall: vessel.lengthOverall ?? null,
+      operatingDraft: vessel.operatingDraft ?? null,
+      maxBeam: vessel.maxBeam ?? null,
+      deadweightTonnage: vessel.deadweightTonnage ?? null,
+      shipyard: vessel.shipyard ?? "",
+      maxServiceSpeed: vessel.maxServiceSpeed ?? null,
+      mainPropulsion: vessel.mainPropulsion ?? "",
+      maxPassengerCapacity: vessel.maxPassengerCapacity ?? null,
+      maxCrewCapacity: vessel.maxCrewCapacity ?? null,
+      lifeboatTotalCapacity: vessel.lifeboatTotalCapacity ?? null,
+      classificationSociety: vessel.classificationSociety ?? "",
+      ismCertification: vessel.ismCertification ?? "",
+      certificateExpiryDate: vessel.certificateExpiryDate
+        ? vessel.certificateExpiryDate.slice(0, 10)
+        : "",
+      operationalStatus: vessel.operationalStatus ?? "ACTIVE",
+      idHomePort: vessel.idHomePort ?? "",
+      mainTerminal: vessel.mainTerminal ?? "",
+      idManager: vessel.idManager ?? "",
+      operationalEmail: vessel.operationalEmail ?? "",
+    });
+    setEditErrors({});
+    if (targetTab) {
+      setActiveTab(targetTab);
+    }
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    if (isSaving) return;
+    setEditErrors({});
+    setIsEditing(false);
+  };
+
+  const handleEditFieldChange = <K extends VesselFieldKey>(
+    field: K,
+    value: VesselFormData[K]
+  ) => {
+    setEditFormData((prev) => ({ ...prev, [field]: value }));
+    if (editErrors[field]) {
+      setEditErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (isSaving) return;
+
+    let allErrors: VesselFieldErrors = {};
+    let firstInvalidStep: number | null = null;
+
+    for (let step = 0; step <= 4; step += 1) {
+      const stepErrors = validateVesselStep(step, editFormData);
+      if (Object.keys(stepErrors).length > 0) {
+        allErrors = { ...allErrors, ...stepErrors };
+        if (firstInvalidStep === null) {
+          firstInvalidStep = step;
+        }
+      }
+    }
+
+    if (firstInvalidStep !== null) {
+      setEditErrors(allErrors);
+      const stepToTab: Record<number, string> = {
+        0: "visao-geral",
+        1: "especificacoes",
+        2: "capacidade",
+        3: "certificacoes",
+        4: "visao-geral",
+      };
+      const targetTab = stepToTab[firstInvalidStep] ?? "visao-geral";
+      if (activeTab !== targetTab) {
+        setActiveTab(targetTab);
+      }
+      const errorCount = Object.keys(allErrors).length;
+      setToastFeedback({
+        variant: "error",
+        message:
+          errorCount === 1
+            ? "Corrija 1 campo para salvar"
+            : `Corrija ${errorCount} campos para salvar`,
+        description:
+          "Verifique os campos destacados com erro antes de confirmar as alterações.",
+      });
+      return;
+    }
+
+    const payload: VesselRequestDTO = {
+      idCompany: vessel.idCompany ?? null,
+      vesselName: editFormData.vesselName.trim(),
+      nationalRegistrationNumber:
+        editFormData.nationalRegistrationNumber.trim(),
+      flag: editFormData.flag,
+      imoNumber: editFormData.imoNumber.trim(),
+      photoUrl: vessel.photoUrl ?? null,
+      yearBuilt: editFormData.yearBuilt,
+      shipyard: editFormData.shipyard.trim(),
+      grossTonnage: editFormData.grossTonnage,
+      deadweightTonnage: editFormData.deadweightTonnage,
+      lengthOverall: editFormData.lengthOverall,
+      maxBeam: editFormData.maxBeam,
+      operatingDraft: editFormData.operatingDraft,
+      maxServiceSpeed: editFormData.maxServiceSpeed,
+      mainPropulsion: editFormData.mainPropulsion,
+      maxPassengerCapacity: editFormData.maxPassengerCapacity,
+      maxCrewCapacity: editFormData.maxCrewCapacity,
+      lifeboatTotalCapacity: editFormData.lifeboatTotalCapacity,
+      classificationSociety: editFormData.classificationSociety,
+      ismCertification: editFormData.ismCertification.trim(),
+      certificateExpiryDate: editFormData.certificateExpiryDate || null,
+      operationalStatus: editFormData.operationalStatus,
+      idHomePort: editFormData.idHomePort.trim() || null,
+      mainTerminal: editFormData.mainTerminal.trim(),
+      idManager: editFormData.idManager.trim() || null,
+      operationalEmail: editFormData.operationalEmail.trim(),
+      documents: [],
+    };
+
+    try {
+      setIsSaving(true);
+      const updated = await updateVessel(vessel.idVessel, payload);
+      setFetchedVessel(updated);
+      setEditErrors({});
+      setIsEditing(false);
+      setToastFeedback({
+        variant: "success",
+        message: "Alterações salvas",
+        description:
+          "Os dados cadastrais da embarcação foram atualizados com sucesso.",
+      });
+    } catch (error: unknown) {
+      setToastFeedback({
+        variant: "error",
+        message: "Não foi possível salvar as alterações",
+        description: parseVesselApiError(
+          error,
+          "Ocorreu uma falha ao atualizar os dados da embarcação."
+        ),
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleExportSheet = () => {
+    window.print();
+  };
+
+  const handleOpenDeleteModal = () => {
+    setDeleteLimitationMessage(
+      "O endpoint DELETE (/api/erp/vessels/{id}) ainda não está implementado no backend (VesselController). A operação está bloqueada e não foi simulada para preservar a integridade dos dados."
+    );
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeleteLimitationMessage(null);
+  };
+
+  const handleConfirmDeleteVessel = () => {
+    const limitationText =
+      "O endpoint DELETE (/api/erp/vessels/{id}) ainda não está implementado no backend (VesselController). A exclusão não foi simulada para preservar a integridade dos dados. Caso deseje retirar a embarcação da frota ativa, utilize 'Editar embarcação' para alterar o status operacional para 'Fora de serviço'.";
+    setDeleteLimitationMessage(limitationText);
+    setToastFeedback({
+      variant: "warning",
+      message: "Exclusão pendente de endpoint no backend",
+      description:
+        "O endpoint DELETE /api/erp/vessels/{id} ainda não foi implementado no servidor.",
+    });
+  };
+
+  const safePhotoUrl = resolveSafeVesselPhotoUrl(vessel.photoUrl);
+
   return (
     <div className="vessel-details-page">
+      {toastFeedback && (
+        <Toast
+          variant={toastFeedback.variant}
+          message={toastFeedback.message}
+          description={toastFeedback.description}
+          durationMs={5000}
+          onClose={() => setToastFeedback(null)}
+        />
+      )}
+
       {/* Cabeçalho Object Page compartilhado entre todas as abas (Figma #5932:33344) */}
       <VesselHeader
+        className="vessel-details-header"
         breadcrumb={[
           { label: "Frota e Viagens", to: "/vessel" },
           { label: "Navios", to: "/vessel" },
           { label: vessel.vesselName },
         ]}
         name={vessel.vesselName}
-        photoUrl={resolveSafeVesselPhotoUrl(vessel.photoUrl)}
+        photoUrl={safePhotoUrl}
         badges={[
           {
             label: statusDisplay.label,
@@ -427,16 +660,16 @@ export function VesselDetails() {
         ]}
         meta={[
           {
-            icon: "pi-id-card",
-            label: `Registro ${vessel.nationalRegistrationNumber || "—"}`,
+            icon: "pi-compass",
+            label: `IMO ${vessel.imoNumber || "—"}`,
           },
           {
             icon: "pi-flag",
-            label: formatFlagDisplay(vessel.flag),
+            label: `Bandeira: ${formatFlagDisplay(vessel.flag)}`,
           },
           {
-            icon: "pi-globe",
-            label: `IMO ${vessel.imoNumber || "—"}`,
+            icon: "pi-id-card",
+            label: `Registro ${vessel.nationalRegistrationNumber || "—"}`,
           },
           {
             icon: "pi-building",
@@ -480,15 +713,33 @@ export function VesselDetails() {
             >
               {showSectionIndex ? "Ocultar índice" : "Índice das abas"}
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="md"
-              icon="pi-arrow-left"
-              onClick={() => navigate("/vessel")}
-            >
-              Voltar para navios
-            </Button>
+            {!isEditing && (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="md"
+                  icon="pi-download"
+                  onClick={handleExportSheet}
+                >
+                  Exportar ficha
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  icon="pi-pencil"
+                  onClick={() => handleStartEdit()}
+                >
+                  Editar embarcação
+                </Button>
+              </>
+            )}
+            {isEditing && (
+              <Badge tone="info" size="md" dot>
+                Modo edição
+              </Badge>
+            )}
           </div>
         }
         tabs={{
@@ -594,85 +845,262 @@ export function VesselDetails() {
                     title="Informações básicas"
                     icon="pi-compass"
                     subtitle="Identificação oficial e registro marítimo da embarcação."
+                    className={
+                      isEditing ? "vessel-details-card--editing" : undefined
+                    }
+                    actions={
+                      !isEditing ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          icon="pi-pencil"
+                          onClick={() => handleStartEdit("visao-geral")}
+                        >
+                          Editar
+                        </Button>
+                      ) : undefined
+                    }
                   >
-                    <dl className="vessel-details-dl-grid">
-                      <div className="vessel-details-dl-item">
-                        <dt>Nome da embarcação</dt>
-                        <dd>{vessel.vesselName || "—"}</dd>
+                    {isEditing ? (
+                      <div className="vessel-details-edit-grid vessel-details-edit-grid--3cols">
+                        <Input
+                          id="edit-vesselName"
+                          label="Nome oficial da embarcação"
+                          required
+                          size="md"
+                          value={editFormData.vesselName}
+                          errorMessage={editErrors.vesselName}
+                          onChange={(e) =>
+                            handleEditFieldChange("vesselName", e.target.value)
+                          }
+                        />
+                        <Input
+                          id="edit-nationalRegistrationNumber"
+                          label="Número do registro nacional"
+                          required
+                          size="md"
+                          value={editFormData.nationalRegistrationNumber}
+                          errorMessage={editErrors.nationalRegistrationNumber}
+                          onChange={(e) =>
+                            handleEditFieldChange(
+                              "nationalRegistrationNumber",
+                              e.target.value
+                            )
+                          }
+                          helperText="Registro na Capitania dos Portos / Tribunal Marítimo."
+                        />
+                        <Input
+                          id="edit-imoNumber"
+                          label="Número IMO"
+                          required
+                          size="md"
+                          maxLength={7}
+                          inputMode="numeric"
+                          value={editFormData.imoNumber}
+                          errorMessage={editErrors.imoNumber}
+                          onChange={(e) =>
+                            handleEditFieldChange(
+                              "imoNumber",
+                              e.target.value.replace(/\D/g, "")
+                            )
+                          }
+                          helperText="Identificação única da IMO, 7 dígitos."
+                        />
+                        <Select
+                          id="edit-flag"
+                          label="Bandeira"
+                          required
+                          size="md"
+                          value={editFormData.flag}
+                          errorMessage={editErrors.flag}
+                          options={VESSEL_FLAG_OPTIONS}
+                          onChange={(e) =>
+                            handleEditFieldChange("flag", e.target.value)
+                          }
+                          placeholder="Selecione a bandeira"
+                        />
+                        <Input
+                          id="edit-yearBuilt"
+                          label="Ano de fabricação"
+                          required
+                          size="md"
+                          type="number"
+                          min={1900}
+                          max={2100}
+                          value={editFormData.yearBuilt ?? ""}
+                          errorMessage={editErrors.yearBuilt}
+                          onChange={(e) =>
+                            handleEditFieldChange(
+                              "yearBuilt",
+                              parseNullableNumber(e)
+                            )
+                          }
+                        />
+                        <Input
+                          id="edit-companyName"
+                          label="Empresa responsável"
+                          isAutomatic
+                          readOnly
+                          disabled
+                          size="md"
+                          value={vessel.companyName || "—"}
+                          helperText="Calculado pelo sistema."
+                        />
                       </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>Número de registro nacional</dt>
-                        <dd className="vessel-details-tabular">
-                          {vessel.nationalRegistrationNumber || "—"}
-                        </dd>
-                      </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>Número IMO</dt>
-                        <dd className="vessel-details-tabular">
-                          {vessel.imoNumber || "—"}
-                        </dd>
-                      </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>Bandeira</dt>
-                        <dd>{formatFlagDisplay(vessel.flag)}</dd>
-                      </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>Ano de fabricação</dt>
-                        <dd className="vessel-details-tabular">
-                          {vessel.yearBuilt ?? "—"}
-                        </dd>
-                      </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>
-                          <span>Empresa proprietária</span>
-                          <Badge tone="automatic" size="sm">
-                            Automático
-                          </Badge>
-                        </dt>
-                        <dd>{vessel.companyName || "—"}</dd>
-                      </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>Data de cadastro</dt>
-                        <dd className="vessel-details-tabular">
-                          {formatDateTimeBr(vessel.createdAt)}
-                        </dd>
-                      </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>ID interno da embarcação</dt>
-                        <dd className="vessel-details-mono">
-                          {vessel.idVessel || "—"}
-                        </dd>
-                      </div>
-                    </dl>
+                    ) : (
+                      <dl className="vessel-details-dl-grid vessel-details-dl-grid--3cols">
+                        <div className="vessel-details-dl-item">
+                          <dt>Nome oficial da embarcação</dt>
+                          <dd>{vessel.vesselName || "—"}</dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>Número do registro nacional</dt>
+                          <dd className="vessel-details-tabular">
+                            {vessel.nationalRegistrationNumber || "—"}
+                          </dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>Número IMO</dt>
+                          <dd className="vessel-details-tabular">
+                            {vessel.imoNumber || "—"}
+                          </dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>Bandeira</dt>
+                          <dd>{formatFlagDisplay(vessel.flag)}</dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>Ano de fabricação</dt>
+                          <dd className="vessel-details-tabular">
+                            {vessel.yearBuilt ?? "—"}
+                          </dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>
+                            <span>Empresa responsável</span>
+                            <Badge tone="automatic" size="sm">
+                              Automático
+                            </Badge>
+                          </dt>
+                          <dd>{vessel.companyName || "—"}</dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>Data de cadastro</dt>
+                          <dd className="vessel-details-tabular">
+                            {formatDateTimeBr(vessel.createdAt)}
+                          </dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>ID interno da embarcação</dt>
+                          <dd className="vessel-details-mono">
+                            {vessel.idVessel || "—"}
+                          </dd>
+                        </div>
+                      </dl>
+                    )}
                   </SectionCard>
 
                   <SectionCard
                     title="Base operacional & gestão"
                     icon="pi-map-marker"
                     subtitle="Alocação portuária, terminal de referência e contato operacional."
+                    className={
+                      isEditing ? "vessel-details-card--editing" : undefined
+                    }
+                    actions={
+                      !isEditing ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          icon="pi-pencil"
+                          onClick={() => handleStartEdit("visao-geral")}
+                        >
+                          Editar
+                        </Button>
+                      ) : undefined
+                    }
                   >
-                    <dl className="vessel-details-dl-grid">
-                      <div className="vessel-details-dl-item">
-                        <dt>Terminal principal</dt>
-                        <dd>{vessel.mainTerminal || "Não informado"}</dd>
+                    {isEditing ? (
+                      <div className="vessel-details-edit-grid">
+                        <Input
+                          id="edit-idHomePort"
+                          label="Porto base (UUID)"
+                          size="md"
+                          value={editFormData.idHomePort}
+                          errorMessage={editErrors.idHomePort}
+                          onChange={(e) =>
+                            handleEditFieldChange("idHomePort", e.target.value)
+                          }
+                          placeholder="Opcional · UUID do porto base"
+                        />
+                        <Input
+                          id="edit-mainTerminal"
+                          label="Terminal / berço principal"
+                          size="md"
+                          value={editFormData.mainTerminal}
+                          errorMessage={editErrors.mainTerminal}
+                          onChange={(e) =>
+                            handleEditFieldChange(
+                              "mainTerminal",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Ex.: Terminal Concais · Berço 3"
+                        />
+                        <Input
+                          id="edit-idManager"
+                          label="Gerente da embarcação (UUID)"
+                          size="md"
+                          value={editFormData.idManager}
+                          errorMessage={editErrors.idManager}
+                          onChange={(e) =>
+                            handleEditFieldChange("idManager", e.target.value)
+                          }
+                          placeholder="Opcional · UUID do gerente"
+                        />
+                        <Input
+                          id="edit-operationalEmail"
+                          label="E-mail operacional"
+                          required
+                          size="md"
+                          type="email"
+                          value={editFormData.operationalEmail}
+                          errorMessage={editErrors.operationalEmail}
+                          onChange={(e) =>
+                            handleEditFieldChange(
+                              "operationalEmail",
+                              e.target.value
+                            )
+                          }
+                          placeholder="operacoes@costaazul.com.br"
+                        />
                       </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>Porto base (UUID)</dt>
-                        <dd className="vessel-details-mono">
-                          {vessel.idHomePort || "Não informado"}
-                        </dd>
-                      </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>Gerente responsável (UUID)</dt>
-                        <dd className="vessel-details-mono">
-                          {vessel.idManager || "Não informado"}
-                        </dd>
-                      </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>E-mail operacional</dt>
-                        <dd>{vessel.operationalEmail || "—"}</dd>
-                      </div>
-                    </dl>
+                    ) : (
+                      <dl className="vessel-details-dl-grid">
+                        <div className="vessel-details-dl-item">
+                          <dt>Terminal principal</dt>
+                          <dd>{vessel.mainTerminal || "Não informado"}</dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>Porto base (UUID)</dt>
+                          <dd className="vessel-details-mono">
+                            {vessel.idHomePort || "Não informado"}
+                          </dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>Gerente responsável (UUID)</dt>
+                          <dd className="vessel-details-mono">
+                            {vessel.idManager || "Não informado"}
+                          </dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>E-mail operacional</dt>
+                          <dd>{vessel.operationalEmail || "—"}</dd>
+                        </div>
+                      </dl>
+                    )}
                   </SectionCard>
                 </div>
 
@@ -807,68 +1235,258 @@ export function VesselDetails() {
                   title="Dimensões e tonelagem"
                   icon="pi-arrows-h"
                   subtitle="Medidas estruturais do casco e arqueação oficial."
+                  className={
+                    isEditing ? "vessel-details-card--editing" : undefined
+                  }
+                  actions={
+                    !isEditing ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        icon="pi-pencil"
+                        onClick={() => handleStartEdit("especificacoes")}
+                      >
+                        Editar
+                      </Button>
+                    ) : undefined
+                  }
                 >
-                  <dl className="vessel-details-dl-grid">
-                    <div className="vessel-details-dl-item">
-                      <dt>Comprimento total (LOA)</dt>
-                      <dd className="vessel-details-tabular">
-                        {formatMetric(vessel.lengthOverall, "m", 2)}
-                      </dd>
+                  {isEditing ? (
+                    <div className="vessel-details-edit-grid vessel-details-edit-grid--3cols">
+                      <Input
+                        id="edit-lengthOverall"
+                        label="Comprimento total (LOA)"
+                        required
+                        size="md"
+                        type="number"
+                        min={0.01}
+                        step="0.01"
+                        unitSuffix="m"
+                        value={editFormData.lengthOverall ?? ""}
+                        errorMessage={editErrors.lengthOverall}
+                        onChange={(e) =>
+                          handleEditFieldChange(
+                            "lengthOverall",
+                            parseNullableNumber(e)
+                          )
+                        }
+                      />
+                      <Input
+                        id="edit-maxBeam"
+                        label="Boca máxima"
+                        size="md"
+                        type="number"
+                        min={0.01}
+                        step="0.01"
+                        unitSuffix="m"
+                        value={editFormData.maxBeam ?? ""}
+                        errorMessage={editErrors.maxBeam}
+                        onChange={(e) =>
+                          handleEditFieldChange(
+                            "maxBeam",
+                            parseNullableNumber(e)
+                          )
+                        }
+                      />
+                      <Input
+                        id="edit-operatingDraft"
+                        label="Calado operacional"
+                        required
+                        size="md"
+                        type="number"
+                        min={0.01}
+                        step="0.01"
+                        unitSuffix="m"
+                        value={editFormData.operatingDraft ?? ""}
+                        errorMessage={editErrors.operatingDraft}
+                        onChange={(e) =>
+                          handleEditFieldChange(
+                            "operatingDraft",
+                            parseNullableNumber(e)
+                          )
+                        }
+                      />
+                      <Input
+                        id="edit-grossTonnage"
+                        label="Arqueação bruta (GT)"
+                        required
+                        size="md"
+                        type="number"
+                        min={0.01}
+                        step="0.01"
+                        unitSuffix="GT"
+                        value={editFormData.grossTonnage ?? ""}
+                        errorMessage={editErrors.grossTonnage}
+                        onChange={(e) =>
+                          handleEditFieldChange(
+                            "grossTonnage",
+                            parseNullableNumber(e)
+                          )
+                        }
+                      />
+                      <Input
+                        id="edit-deadweightTonnage"
+                        label="Porte bruto (DWT)"
+                        size="md"
+                        type="number"
+                        min={0.01}
+                        step="0.01"
+                        unitSuffix="t"
+                        value={editFormData.deadweightTonnage ?? ""}
+                        errorMessage={editErrors.deadweightTonnage}
+                        onChange={(e) =>
+                          handleEditFieldChange(
+                            "deadweightTonnage",
+                            parseNullableNumber(e)
+                          )
+                        }
+                      />
                     </div>
-                    <div className="vessel-details-dl-item">
-                      <dt>Boca máxima</dt>
-                      <dd className="vessel-details-tabular">
-                        {formatMetric(vessel.maxBeam, "m", 2)}
-                      </dd>
-                    </div>
-                    <div className="vessel-details-dl-item">
-                      <dt>Calado operacional</dt>
-                      <dd className="vessel-details-tabular">
-                        {formatMetric(vessel.operatingDraft, "m", 2)}
-                      </dd>
-                    </div>
-                    <div className="vessel-details-dl-item">
-                      <dt>Arqueação bruta (GT)</dt>
-                      <dd className="vessel-details-tabular">
-                        {formatMetric(vessel.grossTonnage, "GT", 2)}
-                      </dd>
-                    </div>
-                    <div className="vessel-details-dl-item">
-                      <dt>Porte bruto (DWT)</dt>
-                      <dd className="vessel-details-tabular">
-                        {formatMetric(vessel.deadweightTonnage, "t", 2)}
-                      </dd>
-                    </div>
-                  </dl>
+                  ) : (
+                    <dl className="vessel-details-dl-grid">
+                      <div className="vessel-details-dl-item">
+                        <dt>Comprimento total (LOA)</dt>
+                        <dd className="vessel-details-tabular">
+                          {formatMetric(vessel.lengthOverall, "m", 2)}
+                        </dd>
+                      </div>
+                      <div className="vessel-details-dl-item">
+                        <dt>Boca máxima</dt>
+                        <dd className="vessel-details-tabular">
+                          {formatMetric(vessel.maxBeam, "m", 2)}
+                        </dd>
+                      </div>
+                      <div className="vessel-details-dl-item">
+                        <dt>Calado operacional</dt>
+                        <dd className="vessel-details-tabular">
+                          {formatMetric(vessel.operatingDraft, "m", 2)}
+                        </dd>
+                      </div>
+                      <div className="vessel-details-dl-item">
+                        <dt>Arqueação bruta (GT)</dt>
+                        <dd className="vessel-details-tabular">
+                          {formatMetric(vessel.grossTonnage, "GT", 2)}
+                        </dd>
+                      </div>
+                      <div className="vessel-details-dl-item">
+                        <dt>Porte bruto (DWT)</dt>
+                        <dd className="vessel-details-tabular">
+                          {formatMetric(vessel.deadweightTonnage, "t", 2)}
+                        </dd>
+                      </div>
+                    </dl>
+                  )}
                 </SectionCard>
 
                 <SectionCard
                   title="Construção e propulsão"
                   icon="pi-wrench"
                   subtitle="Dados do estaleiro construtor e sistema propulsor principal."
+                  className={
+                    isEditing ? "vessel-details-card--editing" : undefined
+                  }
+                  actions={
+                    !isEditing ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        icon="pi-pencil"
+                        onClick={() => handleStartEdit("especificacoes")}
+                      >
+                        Editar
+                      </Button>
+                    ) : undefined
+                  }
                 >
-                  <dl className="vessel-details-dl-grid">
-                    <div className="vessel-details-dl-item">
-                      <dt>Estaleiro construtor</dt>
-                      <dd>{vessel.shipyard || "—"}</dd>
+                  {isEditing ? (
+                    <div className="vessel-details-edit-grid">
+                      <Input
+                        id="edit-shipyard"
+                        label="Estaleiro construtor"
+                        required
+                        size="md"
+                        value={editFormData.shipyard}
+                        errorMessage={editErrors.shipyard}
+                        onChange={(e) =>
+                          handleEditFieldChange("shipyard", e.target.value)
+                        }
+                      />
+                      <Select
+                        id="edit-mainPropulsion"
+                        label="Propulsão principal"
+                        size="md"
+                        value={editFormData.mainPropulsion}
+                        errorMessage={editErrors.mainPropulsion}
+                        options={PROPULSION_TYPE_OPTIONS}
+                        onChange={(e) =>
+                          handleEditFieldChange(
+                            "mainPropulsion",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Selecione o sistema"
+                      />
+                      <Input
+                        id="edit-maxServiceSpeed"
+                        label="Velocidade máx. de serviço"
+                        size="md"
+                        type="number"
+                        min={0.1}
+                        step="0.1"
+                        unitSuffix="nós"
+                        value={editFormData.maxServiceSpeed ?? ""}
+                        errorMessage={editErrors.maxServiceSpeed}
+                        onChange={(e) =>
+                          handleEditFieldChange(
+                            "maxServiceSpeed",
+                            parseNullableNumber(e)
+                          )
+                        }
+                      />
+                      <Input
+                        id="edit-yearBuilt-spec"
+                        label="Ano de fabricação"
+                        required
+                        size="md"
+                        type="number"
+                        min={1900}
+                        max={2100}
+                        value={editFormData.yearBuilt ?? ""}
+                        errorMessage={editErrors.yearBuilt}
+                        onChange={(e) =>
+                          handleEditFieldChange(
+                            "yearBuilt",
+                            parseNullableNumber(e)
+                          )
+                        }
+                      />
                     </div>
-                    <div className="vessel-details-dl-item">
-                      <dt>Propulsão principal</dt>
-                      <dd>{formatPropulsionDisplay(vessel.mainPropulsion)}</dd>
-                    </div>
-                    <div className="vessel-details-dl-item">
-                      <dt>Velocidade máx. de serviço</dt>
-                      <dd className="vessel-details-tabular">
-                        {formatMetric(vessel.maxServiceSpeed, "nós", 1)}
-                      </dd>
-                    </div>
-                    <div className="vessel-details-dl-item">
-                      <dt>Ano de fabricação</dt>
-                      <dd className="vessel-details-tabular">
-                        {vessel.yearBuilt ?? "—"}
-                      </dd>
-                    </div>
-                  </dl>
+                  ) : (
+                    <dl className="vessel-details-dl-grid">
+                      <div className="vessel-details-dl-item">
+                        <dt>Estaleiro construtor</dt>
+                        <dd>{vessel.shipyard || "—"}</dd>
+                      </div>
+                      <div className="vessel-details-dl-item">
+                        <dt>Propulsão principal</dt>
+                        <dd>{formatPropulsionDisplay(vessel.mainPropulsion)}</dd>
+                      </div>
+                      <div className="vessel-details-dl-item">
+                        <dt>Velocidade máx. de serviço</dt>
+                        <dd className="vessel-details-tabular">
+                          {formatMetric(vessel.maxServiceSpeed, "nós", 1)}
+                        </dd>
+                      </div>
+                      <div className="vessel-details-dl-item">
+                        <dt>Ano de fabricação</dt>
+                        <dd className="vessel-details-tabular">
+                          {vessel.yearBuilt ?? "—"}
+                        </dd>
+                      </div>
+                    </dl>
+                  )}
                 </SectionCard>
               </div>
 
@@ -981,41 +1599,127 @@ export function VesselDetails() {
                     title="Capacidade e lotação"
                     icon="pi-users"
                     subtitle="Limites operacionais e de segurança cadastrados para a embarcação."
+                    className={
+                      isEditing ? "vessel-details-card--editing" : undefined
+                    }
+                    actions={
+                      !isEditing ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          icon="pi-pencil"
+                          onClick={() => handleStartEdit("capacidade")}
+                        >
+                          Editar
+                        </Button>
+                      ) : undefined
+                    }
                   >
-                    <dl className="vessel-details-dl-grid">
-                      <div className="vessel-details-dl-item">
-                        <dt>Capacidade máx. de passageiros</dt>
-                        <dd className="vessel-details-tabular">
-                          {formatMetric(vessel.maxPassengerCapacity, "pessoas")}
-                        </dd>
+                    {isEditing ? (
+                      <div className="vessel-details-edit-grid">
+                        <Input
+                          id="edit-maxPassengerCapacity"
+                          label="Capacidade máx. de passageiros"
+                          required
+                          size="md"
+                          type="number"
+                          min={1}
+                          step={1}
+                          unitSuffix="pessoas"
+                          value={editFormData.maxPassengerCapacity ?? ""}
+                          errorMessage={editErrors.maxPassengerCapacity}
+                          onChange={(e) =>
+                            handleEditFieldChange(
+                              "maxPassengerCapacity",
+                              parseNullableNumber(e)
+                            )
+                          }
+                        />
+                        <Input
+                          id="edit-maxCrewCapacity"
+                          label="Capacidade máx. de tripulantes"
+                          required
+                          size="md"
+                          type="number"
+                          min={0}
+                          step={1}
+                          unitSuffix="tripulantes"
+                          value={editFormData.maxCrewCapacity ?? ""}
+                          errorMessage={editErrors.maxCrewCapacity}
+                          onChange={(e) =>
+                            handleEditFieldChange(
+                              "maxCrewCapacity",
+                              parseNullableNumber(e)
+                            )
+                          }
+                        />
+                        <Input
+                          id="edit-cabinCount"
+                          label="Total de cabines"
+                          isAutomatic
+                          readOnly
+                          disabled
+                          size="md"
+                          value={String(vessel.cabinCount ?? 0)}
+                          helperText="Calculado pelo sistema."
+                        />
+                        <Input
+                          id="edit-lifeboatTotalCapacity"
+                          label="Capacidade total de botes salva-vidas"
+                          required
+                          size="md"
+                          type="number"
+                          min={1}
+                          step={1}
+                          unitSuffix="lugares"
+                          value={editFormData.lifeboatTotalCapacity ?? ""}
+                          errorMessage={editErrors.lifeboatTotalCapacity}
+                          onChange={(e) =>
+                            handleEditFieldChange(
+                              "lifeboatTotalCapacity",
+                              parseNullableNumber(e)
+                            )
+                          }
+                          helperText="Deve ser igual ou superior à soma de passageiros e tripulantes."
+                        />
                       </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>Capacidade máx. de tripulantes</dt>
-                        <dd className="vessel-details-tabular">
-                          {formatMetric(vessel.maxCrewCapacity, "tripulantes")}
-                        </dd>
-                      </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>
-                          <span>Total de cabines</span>
-                          <Badge tone="automatic" size="sm">
-                            Automático
-                          </Badge>
-                        </dt>
-                        <dd className="vessel-details-tabular">
-                          {vessel.cabinCount ?? 0}
-                        </dd>
-                      </div>
-                      <div className="vessel-details-dl-item">
-                        <dt>Capacidade total de botes salva-vidas</dt>
-                        <dd className="vessel-details-tabular">
-                          {formatMetric(
-                            vessel.lifeboatTotalCapacity,
-                            "lugares"
-                          )}
-                        </dd>
-                      </div>
-                    </dl>
+                    ) : (
+                      <dl className="vessel-details-dl-grid">
+                        <div className="vessel-details-dl-item">
+                          <dt>Capacidade máx. de passageiros</dt>
+                          <dd className="vessel-details-tabular">
+                            {formatMetric(vessel.maxPassengerCapacity, "pessoas")}
+                          </dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>Capacidade máx. de tripulantes</dt>
+                          <dd className="vessel-details-tabular">
+                            {formatMetric(vessel.maxCrewCapacity, "tripulantes")}
+                          </dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>
+                            <span>Total de cabines</span>
+                            <Badge tone="automatic" size="sm">
+                              Automático
+                            </Badge>
+                          </dt>
+                          <dd className="vessel-details-tabular">
+                            {vessel.cabinCount ?? 0}
+                          </dd>
+                        </div>
+                        <div className="vessel-details-dl-item">
+                          <dt>Capacidade total de botes salva-vidas</dt>
+                          <dd className="vessel-details-tabular">
+                            {formatMetric(
+                              vessel.lifeboatTotalCapacity,
+                              "lugares"
+                            )}
+                          </dd>
+                        </div>
+                      </dl>
+                    )}
                   </SectionCard>
 
                   <SectionCard
@@ -1152,42 +1856,127 @@ export function VesselDetails() {
                 title="Classificação e conformidade"
                 subtitle="Dados de classe naval (IACS) e certificação internacional de gestão de segurança."
                 icon="pi-shield"
+                className={
+                  isEditing ? "vessel-details-card--editing" : undefined
+                }
+                actions={
+                  !isEditing ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      icon="pi-pencil"
+                      onClick={() => handleStartEdit("certificacoes")}
+                    >
+                      Editar
+                    </Button>
+                  ) : undefined
+                }
               >
-                <dl className="vessel-details-dl-grid">
-                  <div className="vessel-details-dl-item">
-                    <dt>Sociedade classificadora (IACS)</dt>
-                    <dd>
-                      {formatClassificationDisplay(
-                        vessel.classificationSociety
-                      )}
-                    </dd>
+                {isEditing ? (
+                  <div className="vessel-details-edit-grid">
+                    <Select
+                      id="edit-classificationSociety"
+                      label="Sociedade classificadora (IACS)"
+                      required
+                      size="md"
+                      value={editFormData.classificationSociety}
+                      errorMessage={editErrors.classificationSociety}
+                      options={CLASSIFICATION_SOCIETY_OPTIONS}
+                      onChange={(e) =>
+                        handleEditFieldChange(
+                          "classificationSociety",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Selecione a classificadora"
+                    />
+                    <Input
+                      id="edit-ismCertification"
+                      label="Certificação Código ISM"
+                      required
+                      size="md"
+                      value={editFormData.ismCertification}
+                      errorMessage={editErrors.ismCertification}
+                      onChange={(e) =>
+                        handleEditFieldChange(
+                          "ismCertification",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Ex.: DOC/SMC nº 3310-SMC-BR"
+                    />
+                    <Input
+                      id="edit-certificateExpiryDate"
+                      label="Data de validade do certificado"
+                      required
+                      size="md"
+                      type="date"
+                      value={editFormData.certificateExpiryDate}
+                      errorMessage={editErrors.certificateExpiryDate}
+                      onChange={(e) =>
+                        handleEditFieldChange(
+                          "certificateExpiryDate",
+                          e.target.value
+                        )
+                      }
+                    />
+                    <Select
+                      id="edit-operationalStatus"
+                      label="Status operacional atual"
+                      required
+                      size="md"
+                      value={editFormData.operationalStatus}
+                      errorMessage={editErrors.operationalStatus}
+                      options={OPERATIONAL_STATUS_OPTIONS.map((opt) => ({
+                        label: opt.label,
+                        value: opt.value,
+                      }))}
+                      onChange={(e) =>
+                        handleEditFieldChange(
+                          "operationalStatus",
+                          e.target.value
+                        )
+                      }
+                    />
                   </div>
-                  <div className="vessel-details-dl-item">
-                    <dt>Certificação Código ISM</dt>
-                    <dd className="vessel-details-tabular">
-                      {vessel.ismCertification || "—"}
-                    </dd>
-                  </div>
-                  <div className="vessel-details-dl-item">
-                    <dt>Data de validade do certificado</dt>
-                    <dd className="vessel-details-dl-inline">
-                      <span className="vessel-details-tabular">
-                        {compliance.expiryFormatted}
-                      </span>
-                      <Badge tone={compliance.badgeTone} size="sm" dot>
-                        {compliance.shortLabel}
-                      </Badge>
-                    </dd>
-                  </div>
-                  <div className="vessel-details-dl-item">
-                    <dt>Status operacional atual</dt>
-                    <dd>
-                      <Badge tone={statusDisplay.tone} size="sm" dot>
-                        {statusDisplay.label}
-                      </Badge>
-                    </dd>
-                  </div>
-                </dl>
+                ) : (
+                  <dl className="vessel-details-dl-grid">
+                    <div className="vessel-details-dl-item">
+                      <dt>Sociedade classificadora (IACS)</dt>
+                      <dd>
+                        {formatClassificationDisplay(
+                          vessel.classificationSociety
+                        )}
+                      </dd>
+                    </div>
+                    <div className="vessel-details-dl-item">
+                      <dt>Certificação Código ISM</dt>
+                      <dd className="vessel-details-tabular">
+                        {vessel.ismCertification || "—"}
+                      </dd>
+                    </div>
+                    <div className="vessel-details-dl-item">
+                      <dt>Data de validade do certificado</dt>
+                      <dd className="vessel-details-dl-inline">
+                        <span className="vessel-details-tabular">
+                          {compliance.expiryFormatted}
+                        </span>
+                        <Badge tone={compliance.badgeTone} size="sm" dot>
+                          {compliance.shortLabel}
+                        </Badge>
+                      </dd>
+                    </div>
+                    <div className="vessel-details-dl-item">
+                      <dt>Status operacional atual</dt>
+                      <dd>
+                        <Badge tone={statusDisplay.tone} size="sm" dot>
+                          {statusDisplay.label}
+                        </Badge>
+                      </dd>
+                    </div>
+                  </dl>
+                )}
               </SectionCard>
 
               <SectionCard
@@ -1357,7 +2146,210 @@ export function VesselDetails() {
             </SectionCard>
           </TabPanel>
         )}
+
+        {/* Rodapé de Ações da Ficha (Visualização: Figma E · 12 #6024:32803 | Edição: Figma E · 09 #5932:34596) */}
+        {isEditing ? (
+          <div className="vessel-details-edit-bar">
+            <div className="vessel-details-edit-bar__status">
+              {Object.keys(editErrors).length > 0 ? (
+                <>
+                  <i
+                    className="pi pi-times-circle vessel-details-edit-bar__icon--error"
+                    aria-hidden="true"
+                  />
+                  <span className="vessel-details-edit-bar__text--error">
+                    Corrija {Object.keys(editErrors).length}{" "}
+                    {Object.keys(editErrors).length === 1
+                      ? "campo"
+                      : "campos"}{" "}
+                    para salvar.
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span
+                    className="vessel-details-edit-bar__dot"
+                    aria-hidden="true"
+                  />
+                  <span>Modo edição ativo · revise os campos alterados</span>
+                </>
+              )}
+            </div>
+
+            <div className="vessel-details-edit-bar__actions">
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                onClick={handleCancelEdit}
+                disabled={isSaving}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                icon="pi-check"
+                disabled={isSaving}
+                onClick={handleSaveEdit}
+              >
+                {isSaving ? "Salvando..." : "Salvar alterações"}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="vessel-details-footer-actions">
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              icon="pi-download"
+              onClick={handleExportSheet}
+            >
+              Exportar ficha
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="md"
+              icon="pi-trash"
+              onClick={handleOpenDeleteModal}
+            >
+              Remover embarcação
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Modal de Confirmação de Remoção (Figma E · 16 #6020:27973) */}
+      <Modal
+        open={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        title="Confirmar remoção"
+        subtitle="Selecione a embarcação correta antes de confirmar a remoção."
+        size="md"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              onClick={handleCloseDeleteModal}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="md"
+              icon="pi-trash"
+              disabled
+              onClick={handleConfirmDeleteVessel}
+              title="Aguardando implementação do endpoint DELETE /api/erp/vessels/{id} no backend"
+            >
+              Confirmar remoção (pendente no backend)
+            </Button>
+          </>
+        }
+      >
+        <div className="vessel-details-delete-modal">
+          <div className="vessel-details-delete-modal__section-header">
+            <span className="vessel-details-delete-modal__section-title">
+              Embarcação selecionada
+            </span>
+            <Badge tone="neutral" size="sm">
+              1 selecionada
+            </Badge>
+          </div>
+
+          <div className="vessel-details-delete-modal__vessel-card">
+            <div className="vessel-details-delete-modal__summary">
+              <div className="vessel-details-delete-modal__photo">
+                {safePhotoUrl ? (
+                  <img
+                    src={safePhotoUrl}
+                    alt={`Foto da embarcação ${vessel.vesselName}`}
+                  />
+                ) : (
+                  <div
+                    className="vessel-details-delete-modal__photo-placeholder"
+                    aria-hidden="true"
+                  >
+                    <i className="pi pi-compass" />
+                    <span>Substitua pela foto</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="vessel-details-delete-modal__info">
+                <div className="vessel-details-delete-modal__title-row">
+                  <strong className="vessel-details-delete-modal__name">
+                    {vessel.vesselName}
+                  </strong>
+                  <Badge tone={statusDisplay.tone} size="sm" dot>
+                    {statusDisplay.label}
+                  </Badge>
+                </div>
+
+                <div className="vessel-details-delete-modal__meta">
+                  <span>IMO {vessel.imoNumber || "—"}</span>
+                  <span aria-hidden="true">·</span>
+                  <span>
+                    Bandeira: {formatFlagDisplay(vessel.flag)}
+                  </span>
+                  <span aria-hidden="true">·</span>
+                  <span>
+                    Registro {vessel.nationalRegistrationNumber || "—"}
+                  </span>
+                </div>
+
+                <div className="vessel-details-delete-modal__metrics">
+                  <div className="vessel-details-delete-modal__metric">
+                    <span className="vessel-details-delete-modal__metric-label">
+                      Arqueação bruta
+                    </span>
+                    <strong className="vessel-details-delete-modal__metric-value vessel-details-tabular">
+                      {formatMetric(vessel.grossTonnage, "GT")}
+                    </strong>
+                  </div>
+                  <div className="vessel-details-delete-modal__metric">
+                    <span className="vessel-details-delete-modal__metric-label">
+                      Comprimento
+                    </span>
+                    <strong className="vessel-details-delete-modal__metric-value vessel-details-tabular">
+                      {formatMetric(vessel.lengthOverall, "m", 1)}
+                    </strong>
+                  </div>
+                  <div className="vessel-details-delete-modal__metric">
+                    <span className="vessel-details-delete-modal__metric-label">
+                      Conveses
+                    </span>
+                    <strong className="vessel-details-delete-modal__metric-value vessel-details-tabular">
+                      {vessel.deckCount ?? 0}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="vessel-details-delete-modal__warning">
+            <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+            <span>
+              Confira a embarcação selecionada antes de confirmar a remoção.
+            </span>
+          </div>
+
+          {deleteLimitationMessage && (
+            <Alert
+              variant="warning"
+              title="Operação de exclusão pendente no backend"
+              description={deleteLimitationMessage}
+            />
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

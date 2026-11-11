@@ -1,5 +1,9 @@
+import axios from "axios";
 import type { BadgeTone, SelectOption } from "../../../components";
-import type { VesselResponseDTO } from "../../../services/vesselcreate";
+import type {
+  VesselResponseDTO,
+  VesselSummaryDTO,
+} from "../../../services/vesselcreate";
 import {
   CLASSIFICATION_SOCIETY_OPTIONS,
   formatIsoDateBr,
@@ -24,6 +28,12 @@ export type VesselComplianceState =
 
 export type VesselComplianceFilterValue = "ALL" | VesselComplianceState;
 
+export type VesselComplianceVisualTone =
+  | "ok"
+  | "warning"
+  | "error"
+  | "neutral";
+
 export interface VesselStatusDisplay {
   value: string;
   label: string;
@@ -35,9 +45,22 @@ export interface VesselComplianceEvaluation {
   daysDifference: number | null;
   shortLabel: string;
   cardLabel: string;
-  cardTone: "ok" | "warning";
+  cardTone: VesselComplianceVisualTone;
+  iconName: string;
   badgeTone: BadgeTone;
   expiryFormatted: string;
+}
+
+export interface FleetKpiSummary {
+  totalCount: number;
+  activeCount: number;
+  maintenanceCount: number;
+  inactiveCount: number;
+  totalPassengerCapacity: number;
+  expiredCertificatesCount: number;
+  expiringSoonCertificatesCount: number;
+  missingCertificatesCount: number;
+  totalComplianceAlerts: number;
 }
 
 export const VESSEL_STATUS_FILTER_OPTIONS: SelectOption[] = [
@@ -99,8 +122,8 @@ export function getVesselStatusDisplay(
 }
 
 /**
- * Avalia a validade do certificado ISM (`certificateExpiryDate`) em relação à data atual local.
- * Considera "Vence em até 30 dias" (`expiring_soon`) certificados com vencimento entre 0 e 30 dias.
+ * Avalia a validade do certificado ISM (`certificateExpiryDate`) em relação à data local atual.
+ * Alinhado com a regra de 30 dias do `VesselService.evaluateCompliance` no backend.
  */
 export function evaluateVesselCompliance(
   certificateExpiryDate: string | null | undefined
@@ -110,9 +133,10 @@ export function evaluateVesselCompliance(
     return {
       state: "missing",
       daysDifference: null,
-      shortLabel: "Validade não informada",
-      cardLabel: "Validade do certificado não informada",
-      cardTone: "warning",
+      shortLabel: "Sem certificado registrado",
+      cardLabel: "Validade não informada",
+      cardTone: "neutral",
+      iconName: "pi-info-circle",
       badgeTone: "neutral",
       expiryFormatted: "—",
     };
@@ -125,7 +149,8 @@ export function evaluateVesselCompliance(
       daysDifference: null,
       shortLabel: "Data inválida",
       cardLabel: "Validade não identificada",
-      cardTone: "warning",
+      cardTone: "neutral",
+      iconName: "pi-info-circle",
       badgeTone: "neutral",
       expiryFormatted: rawDate,
     };
@@ -152,7 +177,8 @@ export function evaluateVesselCompliance(
           ? "Vencido há 1 dia"
           : `Vencido há ${expiredDays} dias`,
       cardLabel: `Certificado ISM vencido (${expiryFormatted})`,
-      cardTone: "warning",
+      cardTone: "error",
+      iconName: "pi-times-circle",
       badgeTone: "error",
       expiryFormatted,
     };
@@ -173,6 +199,7 @@ export function evaluateVesselCompliance(
           ? "Certificado ISM vence hoje"
           : `Certificado ISM vence em ${diffDays}d`,
       cardTone: "warning",
+      iconName: "pi-exclamation-triangle",
       badgeTone: "warning",
       expiryFormatted,
     };
@@ -184,6 +211,7 @@ export function evaluateVesselCompliance(
     shortLabel: "Conformidade em dia",
     cardLabel: "Conformidade em dia",
     cardTone: "ok",
+    iconName: "pi-check-circle",
     badgeTone: "success",
     expiryFormatted,
   };
@@ -211,13 +239,140 @@ export function resolveSafeVesselPhotoUrl(
 
 /**
  * Retorna a identificação legível do porto base / terminal da embarcação.
+ * Aceita tanto `VesselSummaryDTO` (listagem) quanto `VesselResponseDTO` (detalhes).
  */
-export function getVesselBasePortDisplay(vessel: VesselResponseDTO): string {
+export function getVesselBasePortDisplay(
+  vessel: Pick<VesselSummaryDTO, "mainTerminal" | "idHomePort">
+): string {
   const terminal = vessel.mainTerminal?.trim();
   if (terminal) return terminal;
   const homePort = vessel.idHomePort?.trim();
   if (homePort) return `Porto ID ${homePort.slice(0, 8)}`;
   return "—";
+}
+
+/**
+ * Extrai a lista de opções únicas de Porto Base a partir da frota cadastrada.
+ */
+export function extractBasePortOptions(
+  vessels: Array<Pick<VesselSummaryDTO, "mainTerminal" | "idHomePort">>,
+  selectedPort?: string
+): SelectOption[] {
+  const uniquePorts = new Set<string>();
+  vessels.forEach((vessel) => {
+    const portLabel = getVesselBasePortDisplay(vessel);
+    if (portLabel !== "—") {
+      uniquePorts.add(portLabel);
+    }
+  });
+
+  if (selectedPort && selectedPort !== "ALL") {
+    uniquePorts.add(selectedPort);
+  }
+
+  const sortedPorts = Array.from(uniquePorts).sort((a, b) =>
+    a.localeCompare(b, "pt-BR")
+  );
+
+  return [
+    { label: "Todos", value: "ALL" },
+    ...sortedPorts.map((port) => ({ label: port, value: port })),
+  ];
+}
+
+/**
+ * Calcula os indicadores reais da frota (KPIs) a partir da lista resumida de embarcações
+ * e do total de elementos retornados pela API.
+ */
+export function calculateFleetKpis(
+  vessels: VesselSummaryDTO[],
+  totalFleetElements?: number
+): FleetKpiSummary {
+  const totalCount =
+    typeof totalFleetElements === "number"
+      ? Math.max(totalFleetElements, vessels.length)
+      : vessels.length;
+
+  let activeCount = 0;
+  let maintenanceCount = 0;
+  let inactiveCount = 0;
+  let totalPassengerCapacity = 0;
+  let expiredCertificatesCount = 0;
+  let expiringSoonCertificatesCount = 0;
+  let missingCertificatesCount = 0;
+
+  vessels.forEach((vessel) => {
+    const status = (vessel.operationalStatus ?? "").trim().toUpperCase();
+    if (status === "ACTIVE") {
+      activeCount += 1;
+    } else if (status === "MAINTENANCE" || status === "DRY_DOCK") {
+      maintenanceCount += 1;
+    } else {
+      inactiveCount += 1;
+    }
+
+    if (
+      vessel.maxPassengerCapacity !== null &&
+      vessel.maxPassengerCapacity !== undefined &&
+      !Number.isNaN(vessel.maxPassengerCapacity)
+    ) {
+      totalPassengerCapacity += vessel.maxPassengerCapacity;
+    }
+
+    const compliance = evaluateVesselCompliance(vessel.certificateExpiryDate);
+    if (compliance.state === "expired") {
+      expiredCertificatesCount += 1;
+    } else if (compliance.state === "expiring_soon") {
+      expiringSoonCertificatesCount += 1;
+    } else if (compliance.state === "missing") {
+      missingCertificatesCount += 1;
+    }
+  });
+
+  const totalComplianceAlerts =
+    expiredCertificatesCount + expiringSoonCertificatesCount;
+
+  return {
+    totalCount,
+    activeCount,
+    maintenanceCount,
+    inactiveCount,
+    totalPassengerCapacity,
+    expiredCertificatesCount,
+    expiringSoonCertificatesCount,
+    missingCertificatesCount,
+    totalComplianceAlerts,
+  };
+}
+
+/**
+ * Extrai mensagem de erro amigável a partir de falhas HTTP/Axios.
+ */
+export function parseVesselApiError(
+  error: unknown,
+  fallbackMessage = "Não foi possível carregar a listagem de embarcações. Verifique sua conexão com o servidor."
+): string {
+  if (axios.isAxiosError(error)) {
+    const status = error.response?.status;
+    if (status === 401 || status === 403) {
+      return "Sua sessão expirou ou você não possui permissão para consultar as embarcações.";
+    }
+    if (status === 404) {
+      return "O recurso de embarcações solicitado não foi encontrado no servidor.";
+    }
+    if (
+      typeof error.response?.data === "object" &&
+      error.response?.data !== null &&
+      "message" in error.response.data &&
+      typeof (error.response.data as { message?: unknown }).message === "string"
+    ) {
+      return (error.response.data as { message: string }).message;
+    }
+  }
+  if (error instanceof Error && error.message.includes("Formato de resposta")) {
+    return error.message;
+  }
+  return fallbackMessage;
 }
 
 export function formatFlagDisplay(flag: string | null | undefined): string {

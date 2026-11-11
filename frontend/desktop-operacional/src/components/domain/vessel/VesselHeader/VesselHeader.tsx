@@ -66,7 +66,10 @@ export function VesselHeader({
             <img src={photoUrl} alt={`Foto da embarcação ${name}`} />
           ) : (
             <div className="vessel-header__photo-placeholder">
-              <i className="pi pi-image" aria-hidden="true" />
+              <i className="pi pi-compass" aria-hidden="true" />
+              <span className="vessel-header__photo-caption">
+                Substitua pela foto
+              </span>
               {onPhotoUpload && (
                 <Button variant="ghost" size="sm" onClick={onPhotoUpload}>
                   Enviar foto
@@ -80,7 +83,7 @@ export function VesselHeader({
           <div className="vessel-header__name-row">
             <h1 className="vessel-header__name">{name}</h1>
             {badges.map((badge) => (
-              <Badge key={badge.label} tone={badge.tone}>
+              <Badge key={badge.label} tone={badge.tone} dot>
                 {badge.label}
               </Badge>
             ))}
@@ -96,20 +99,20 @@ export function VesselHeader({
               ))}
             </ul>
           )}
+
+          {keyMetrics.length > 0 && (
+            // <dl> (lista de definição) é a tag semântica para pares "rótulo → valor"
+            <dl className="vessel-header__metrics">
+              {keyMetrics.map((metric) => (
+                <div key={metric.label} className="vessel-header__metric">
+                  <dt>{metric.label}</dt>
+                  <dd>{metric.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
       </div>
-
-      {keyMetrics.length > 0 && (
-        // <dl> (lista de definição) é a tag semântica para pares "rótulo → valor"
-        <dl className="vessel-header__metrics">
-          {keyMetrics.map((metric) => (
-            <div key={metric.label} className="vessel-header__metric">
-              <dt>{metric.label}</dt>
-              <dd>{metric.value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
 
       {tabs && (
         <Tabs

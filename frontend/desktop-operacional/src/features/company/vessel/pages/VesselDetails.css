@@ -4,10 +4,21 @@
 
 .vessel-details-page {
   width: 100%;
+  max-width: none;
   min-height: 100%;
   background-color: var(--color-gray-50);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+}
+
+.vessel-details-header {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: var(--space-6) var(--space-8) 0;
+  box-sizing: border-box;
 }
 
 .vessel-details-header-actions {
@@ -17,14 +28,19 @@
   flex-wrap: wrap;
 }
 
+.vessel-details-toast-banner {
+  width: 100%;
+}
+
 .vessel-details-body {
   width: 100%;
-  max-width: var(--container-max, 1200px);
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   padding: var(--space-6) var(--space-8) var(--space-12);
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
+  box-sizing: border-box;
 }
 
 .vessel-details-tab-stack {
@@ -36,7 +52,7 @@
 /* Layout de 2 colunas das Abas 01, 02 e 03 */
 .vessel-details-layout-grid {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: var(--space-6);
   align-items: start;
 }
@@ -68,12 +84,14 @@
   gap: var(--space-4) var(--space-6);
 }
 
+.vessel-details-dl-grid--3cols {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .vessel-details-dl-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--color-gray-100);
 }
 
 .vessel-details-dl-item dt {
@@ -82,7 +100,7 @@
   gap: var(--space-2);
   font-family: var(--font-sans);
   font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  line-height: var(--leading-caption);
   font-weight: 500;
   color: var(--color-gray-600);
 }
@@ -91,7 +109,7 @@
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
+  line-height: var(--leading-body-md);
   font-weight: 600;
   color: var(--color-gray-900);
   word-break: break-word;
@@ -156,7 +174,7 @@
   margin: var(--space-3) 0 0;
   font-family: var(--font-sans);
   font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  line-height: var(--leading-caption);
   color: var(--color-gray-500);
 }
 
@@ -178,7 +196,7 @@
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--text-body-sm);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--leading-body-sm);
   color: var(--color-gray-600);
 }
 
@@ -391,7 +409,7 @@
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--text-body-sm);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--leading-body-sm);
   color: var(--color-gray-700);
 }
 
@@ -428,8 +446,8 @@
   margin: 0;
   font-family: var(--font-heading);
   font-size: var(--text-h3);
-  line-height: var(--text-h3--line-height);
-  font-weight: var(--text-h3--font-weight);
+  line-height: var(--leading-h3);
+  font-weight: var(--font-weight-h3);
   color: var(--color-gray-900);
 }
 
@@ -492,14 +510,15 @@
 .vessel-details-index-item__desc {
   font-family: var(--font-sans);
   font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  line-height: var(--leading-caption);
   color: var(--color-gray-600);
 }
 
 /* Estados de Carregamento e Erro */
 .vessel-details-state-box {
-  max-width: var(--container-max, 1200px);
-  margin: var(--space-8) auto;
+  width: 100%;
+  max-width: none;
+  margin: var(--space-8) 0;
   padding: var(--space-12) var(--space-6);
   background-color: var(--color-white);
   border: 1px solid var(--color-outline-variant);
@@ -511,6 +530,7 @@
   font-family: var(--font-sans);
   font-size: var(--text-body-md);
   color: var(--color-gray-600);
+  box-sizing: border-box;
 }
 
 .vessel-details-state-box i {
@@ -519,16 +539,256 @@
 }
 
 .vessel-details-error-container {
-  max-width: var(--container-max, 1200px);
   width: 100%;
-  margin: var(--space-8) auto;
+  max-width: none;
+  margin: var(--space-8) 0;
   padding: 0 var(--space-8);
+  box-sizing: border-box;
+}
+
+/* Modo Edição In-Place nas Seções (Figma E · 09 #5932:34609) */
+.vessel-details-card--editing {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-50);
+}
+
+.vessel-details-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+  align-items: start;
+}
+
+.vessel-details-edit-grid--3cols {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Barra de Salvar no Rodapé do Modo Edição (Figma E · 09 #5932:34596) */
+.vessel-details-edit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-elev-2);
+  flex-wrap: wrap;
+}
+
+.vessel-details-edit-bar__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  color: var(--color-gray-700);
+}
+
+.vessel-details-edit-bar__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-primary-500);
+}
+
+.vessel-details-edit-bar__icon--error {
+  color: var(--color-error-500);
+  font-size: 16px;
+}
+
+.vessel-details-edit-bar__text--error {
+  color: var(--color-error-900);
+  font-weight: 600;
+}
+
+.vessel-details-edit-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Rodapé de Ações da Ficha (Figma E · 12 #6024:32803) */
+.vessel-details-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-outline-variant);
+  flex-wrap: wrap;
+}
+
+/* Modal de Confirmação de Remoção (Figma E · 16 #6020:27973) */
+.vessel-details-delete-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.vessel-details-delete-modal__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.vessel-details-delete-modal__section-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-label-md);
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.vessel-details-delete-modal__vessel-card {
+  background-color: var(--color-gray-50);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.vessel-details-delete-modal__summary {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-4);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.vessel-details-delete-modal__photo {
+  width: 132px;
+  min-height: 108px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #8cc7f2 0%, #176bb8 55%, #05295c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vessel-details-delete-modal__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vessel-details-delete-modal__photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--color-white);
+  text-align: center;
+  padding: var(--space-2);
+}
+
+.vessel-details-delete-modal__photo-placeholder i {
+  font-size: 22px;
+}
+
+.vessel-details-delete-modal__photo-placeholder span {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.vessel-details-delete-modal__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.vessel-details-delete-modal__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.vessel-details-delete-modal__name {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  line-height: var(--leading-h3);
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.vessel-details-delete-modal__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  color: var(--color-gray-600);
+}
+
+.vessel-details-delete-modal__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-gray-50);
+  border-radius: var(--radius-sm);
+}
+
+.vessel-details-delete-modal__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vessel-details-delete-modal__metric-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--color-gray-500);
+}
+
+.vessel-details-delete-modal__metric-value {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.vessel-details-delete-modal__warning {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-gray-50);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  color: var(--color-gray-700);
+}
+
+.vessel-details-delete-modal__warning i {
+  color: var(--color-gray-600);
+  font-size: 16px;
 }
 
 /* Responsividade */
 @media (max-width: 1100px) {
   .vessel-details-layout-grid {
     grid-template-columns: 1fr;
+  }
+
+  .vessel-details-dl-grid--3cols,
+  .vessel-details-edit-grid--3cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .vessel-details-kpis-row {
@@ -541,11 +801,18 @@
 }
 
 @media (max-width: 768px) {
+  .vessel-details-header {
+    padding: var(--space-4) var(--space-4) 0;
+  }
+
   .vessel-details-body {
     padding: var(--space-4);
   }
 
-  .vessel-details-dl-grid {
+  .vessel-details-dl-grid,
+  .vessel-details-dl-grid--3cols,
+  .vessel-details-edit-grid,
+  .vessel-details-edit-grid--3cols {
     grid-template-columns: 1fr;
   }
 
@@ -554,6 +821,19 @@
   }
 
   .vessel-details-index-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vessel-details-delete-modal__summary {
+    flex-direction: column;
+  }
+
+  .vessel-details-delete-modal__photo {
+    width: 100%;
+    height: 120px;
+  }
+
+  .vessel-details-delete-modal__metrics {
     grid-template-columns: 1fr;
   }
 }
