@@ -1,3 +1,4 @@
+
 import axios from "axios";
 import { AUTH_PATHS } from "../routes/paths";
 import { endSession, getToken, isTokenExpired } from "./session";
@@ -17,9 +18,8 @@ api.interceptors.request.use((config) => {
 });
 
 /**
- * Sessão expirada: o backend responde 401 ou, na configuração atual do Spring Security,
- * 403 sem corpo quando o JWT vence. Só tratamos o 403 como expiração se o próprio token
- * estiver vencido — um 403 com token válido é falta de permissão e fica com a tela.
+ * Trata sessões expiradas.
+ * Um 403 com token válido continua sendo erro de permissão.
  */
 api.interceptors.response.use(
     (response) => response,
@@ -34,7 +34,10 @@ api.interceptors.response.use(
                 token !== null &&
                 (status === 401 || (status === 403 && isTokenExpired(token)));
 
-            if (sessionExpired && window.location.pathname !== AUTH_PATHS.sessionExpired) {
+            if (
+                sessionExpired &&
+                window.location.pathname !== AUTH_PATHS.sessionExpired
+            ) {
                 endSession();
                 window.location.assign(AUTH_PATHS.sessionExpired);
             }

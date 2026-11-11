@@ -26,8 +26,9 @@
    Cabeçalho da Página (#5932:32048)
    ========================================================================== */
 
-.vessel-header {
+.vessel-create-shell .vessel-header {
   display: flex;
+  flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);

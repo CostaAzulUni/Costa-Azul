@@ -105,15 +105,51 @@ public class VesselService {
 
     @Transactional(readOnly = true)
     public PagedVesselResponseDTO listVessels(String nome, String status, int page, int limit) {
+        return listVessels(nome, status, null, null, page, limit);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedVesselResponseDTO listVessels(
+            String nome,
+            String status,
+            String porto,
+            String conformidade,
+            int page,
+            int limit
+    ) {
         int pageIndex = Math.max(0, page - 1);
         int pageSize = Math.max(1, limit);
 
         Pageable pageable = PageRequest.of(pageIndex, pageSize, Sort.by("vesselName").ascending());
 
         String searchFilter = (nome == null) ? "" : nome.trim();
-        String statusFilter = (status == null) ? "" : status.trim().toUpperCase();
+        String statusFilter = (status == null || "ALL".equalsIgnoreCase(status.trim()))
+                ? ""
+                : status.trim().toUpperCase();
 
-        Page<Vessel> vesselPage = vesselRepository.searchVessels(searchFilter, statusFilter, pageable);
+        String normalizedPort = (porto == null || "ALL".equalsIgnoreCase(porto.trim()))
+                ? ""
+                : porto.trim();
+        if (normalizedPort.toLowerCase().startsWith("porto id ")) {
+            normalizedPort = normalizedPort.substring("porto id ".length()).trim();
+        }
+
+        String complianceFilter = (conformidade == null || "ALL".equalsIgnoreCase(conformidade.trim()))
+                ? ""
+                : conformidade.trim().toUpperCase();
+
+        LocalDate today = LocalDate.now();
+        LocalDate warningLimitDate = today.plusDays(30);
+
+        Page<Vessel> vesselPage = vesselRepository.searchVessels(
+                searchFilter,
+                statusFilter,
+                normalizedPort,
+                complianceFilter,
+                today,
+                warningLimitDate,
+                pageable
+        );
 
         List<VesselSummaryDTO> summaries = vesselPage.getContent()
                 .stream()

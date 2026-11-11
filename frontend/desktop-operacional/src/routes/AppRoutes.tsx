@@ -1,13 +1,17 @@
+
 import { Navigate, Route, Routes } from "react-router-dom";
+
 import { Dashboard } from "../features/company/dashboard/Dashboard";
 import { Vessel } from "../features/company/vessel/pages/Vessel";
+import { VesselCreate } from "../features/company/vessel/pages/VesselCreate";
+import { VesselDetails } from "../features/company/vessel/pages/VesselDetails";
 import { Trips } from "../features/company/trips/Trips";
 import { Crew } from "../features/company/crew/Crew";
 import { Finance } from "../features/company/financial/Finance";
 import { Settings } from "../features/company/settings/Settings";
 import { Relatorios } from "../features/company/relatorios/Relatorios";
-import { VesselCreate } from "../features/company/vessel/pages/VesselCreate";
 import { CompanyLayout } from "../features/company/CompanyLayout";
+
 import { AuthLayout } from "../features/login/AuthLayout";
 import { Login } from "../features/login/pages/Login";
 import { RecoverAccess } from "../features/login/pages/RecoverAccess";
@@ -22,16 +26,17 @@ import {
     PasswordResetSuccess,
     SessionExpired,
 } from "../features/login/pages/StatusPages";
+
 import { RequireAuth } from "./RequireAuth";
 import { AUTH_PATHS, HOME_PATH } from "./paths";
 
 export function AppRoutes() {
-    return(
+    return (
         <Routes>
-            <Route path="/dev" element={<Navigate to={HOME_PATH} />} />
+            <Route path="/dev" element={<Navigate to={HOME_PATH} replace />} />
             <Route path="/" element={<Navigate to={AUTH_PATHS.login} replace />} />
 
-            {/* Autenticação: painel institucional fixo + telas trocadas pelo <Outlet /> */}
+            {/* Autenticação */}
             <Route element={<AuthLayout />}>
                 <Route path={AUTH_PATHS.login} element={<Login />} />
                 <Route path={AUTH_PATHS.recoverAccess} element={<RecoverAccess />} />
@@ -46,12 +51,13 @@ export function AppRoutes() {
                 <Route path={AUTH_PATHS.sessionExpired} element={<SessionExpired />} />
             </Route>
 
-            {/* Área logada: exige sessão válida e perfil do ERP */}
+            {/* Área logada */}
             <Route element={<RequireAuth />}>
                 <Route element={<CompanyLayout />}>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/vessel" element={<Vessel />} />
                     <Route path="/vessel/create" element={<VesselCreate />} />
+                    <Route path="/vessel/:id" element={<VesselDetails />} />
                     <Route path="/trips" element={<Trips />} />
                     <Route path="/crew" element={<Crew />} />
                     <Route path="/finance" element={<Finance />} />
@@ -60,7 +66,6 @@ export function AppRoutes() {
                 </Route>
             </Route>
 
-            {/* Endereço inexistente: volta ao início (login ou dashboard, conforme a sessão) */}
             <Route path="*" element={<Navigate to={AUTH_PATHS.login} replace />} />
         </Routes>
     );

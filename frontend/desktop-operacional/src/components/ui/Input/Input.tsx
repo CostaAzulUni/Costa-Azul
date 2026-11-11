@@ -169,7 +169,7 @@ export function Input({
 
         {unitSuffix && <span className="ui-input__unit">{unitSuffix}</span>}
 
-        {type === "password" && (
+        {type === "password" && !rightIcon && (
           <button
             type="button"
             className="ui-input__password-toggle"
@@ -193,14 +193,14 @@ export function Input({
           />
         )}
 
-        {hasError && type !== "password" && !isReadOnlyField && (
+        {hasError && type !== "password" && !isReadOnlyField && !rightIcon && (
           <i
             className="ui-input__icon ui-input__icon--error pi pi-exclamation-circle"
             aria-hidden="true"
           />
         )}
 
-        {!hasError && !isReadOnlyField && type !== "password" && renderIconNode(rightIcon)}
+        {!hasError && !isReadOnlyField && (type !== "password" || Boolean(rightIcon)) && renderIconNode(rightIcon)}
       </div>
 
       {hasError ? (

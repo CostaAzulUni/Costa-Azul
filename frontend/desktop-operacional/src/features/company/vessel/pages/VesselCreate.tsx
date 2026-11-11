@@ -206,7 +206,6 @@ export function VesselCreate() {
 
     try {
       setIsSubmitting(true);
-
       const response = await createVessel(payload);
 
       setCreatedVessel(response);
@@ -430,7 +429,11 @@ export function VesselCreate() {
                 type="button"
                 variant="primary"
                 size="md"
-                onClick={() => navigate("/vessel")}
+                onClick={() =>
+                  navigate(`/vessel/${createdVessel.idVessel}`, {
+                    state: { vessel: createdVessel },
+                  })
+                }
               >
                 Ver ficha da embarcação
               </Button>
@@ -629,6 +632,7 @@ export function VesselCreate() {
               variant="primary"
               size="md"
               onClick={handleNextStep}
+              disabled={isSubmitting}
             >
               {NEXT_STEP_BUTTON_LABELS[currentStep]}
             </Button>
