@@ -1,0 +1,80 @@
+/* ==========================================================================
+   Design System — SectionCard (Fase 04)
+   ========================================================================== */
+
+.ui-section-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg); /* 16px */
+  font-family: var(--font-sans);
+}
+
+.ui-section-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3); /* 12px */
+  padding: 20px var(--space-6) 0;
+}
+
+.ui-section-card__icon-box {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm); /* 8px */
+  background: var(--color-primary-50);
+  color: var(--color-primary-500);
+}
+
+.ui-section-card__icon {
+  font-size: 16px;
+}
+
+.ui-section-card__heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.ui-section-card__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.ui-section-card__subtitle {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--color-gray-600);
+}
+
+.ui-section-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.ui-section-card__body {
+  padding: 18px var(--space-6) var(--space-6);
+}
+
+.ui-section-card__body--flush {
+  padding: var(--space-4) 0 0;
+}
+
+.ui-section-card__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: var(--border-width) solid var(--color-outline-variant);
+}

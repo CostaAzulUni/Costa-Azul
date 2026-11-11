@@ -1,107 +1,71 @@
-import { Card } from "primereact/card";
-import { InputText } from "primereact/inputtext";
+import { Input, SectionCard } from "../../../../components";
+import type {
+  VesselFieldErrors,
+  VesselFieldKey,
+  VesselFormData,
+} from "../vesselFormConfig";
 
-interface VesselOperationalProps {
-    idHomePort: string | null;
-    setIdHomePort: (value: string | null) => void;
-
-    mainTerminal: string;
-    setMainTerminal: (value: string) => void;
-
-    idManager: string | null;
-    setIdManager: (value: string | null) => void;
-
-    operationalEmail: string;
-    setOperationalEmail: (value: string) => void;
+export interface VesselOperationalProps {
+  formData: VesselFormData;
+  errors: VesselFieldErrors;
+  onFieldChange: <K extends VesselFieldKey>(
+    field: K,
+    value: VesselFormData[K]
+  ) => void;
 }
 
 export function VesselOperational({
-    idHomePort,
-    setIdHomePort,
-    mainTerminal,
-    setMainTerminal,
-    idManager,
-    setIdManager,
-    operationalEmail,
-    setOperationalEmail
+  formData,
+  errors,
+  onFieldChange,
 }: VesselOperationalProps) {
+  return (
+    <SectionCard title="Base operacional e gestão" icon="pi-map-marker">
+      <div className="vessel-form-grid">
+        <Input
+          id="idHomePort"
+          label="Porto base (ID UUID)"
+          size="lg"
+          value={formData.idHomePort}
+          errorMessage={errors.idHomePort}
+          onChange={(e) => onFieldChange("idHomePort", e.target.value)}
+          placeholder="Opcional · aguarda listagem do módulo Portos"
+          helperText="Deixe em branco ou informe o UUID do porto cadastrado."
+        />
 
-    return (
+        <Input
+          id="mainTerminal"
+          label="Terminal / berço principal"
+          size="lg"
+          value={formData.mainTerminal}
+          errorMessage={errors.mainTerminal}
+          onChange={(e) => onFieldChange("mainTerminal", e.target.value)}
+          placeholder="Ex.: Berço 02 · Cais Outeirinhos"
+        />
 
-        <section className="vessel-section">
-        <Card className="vessel-card">
-            <div className="section-title">
-                <div className="section-icon">
-                    <i className="pi pi-building" />
-                </div>
+        <Input
+          id="idManager"
+          label="Gerente da embarcação (ID UUID)"
+          size="lg"
+          value={formData.idManager}
+          errorMessage={errors.idManager}
+          onChange={(e) => onFieldChange("idManager", e.target.value)}
+          placeholder="Opcional · aguarda listagem do módulo Pessoas"
+          helperText="Deixe em branco ou informe o UUID do funcionário responsável."
+        />
 
-                <h2>Seção 5 - Base Operacional & Gestão</h2>
-            </div>
-
-            <div className="vessel-fields-grid">
-
-                <div className="form-field">
-                    <label htmlFor="porto-base">
-                        Porto Base
-                    </label>
-
-                    <InputText
-                        id="porto-base"
-                        placeholder="Inserir porto"
-                        className="w-full"
-                        disabled 
-                        value={idHomePort}
-                        onChange={(e) => setIdHomePort(e.target.value)}
-                    />
-                </div>
-                    
-
-                <div className="form-field">
-                    <label htmlFor="terminal">
-                        Terminal / Berço principal
-                    </label>
-
-                    <InputText
-                        id="terminal"
-                        placeholder="Inserir terminal"
-                        className="w-full"
-                        value={mainTerminal}
-                        onChange={(e) => setMainTerminal(e.target.value)}
-                    />
-                </div>
-
-                <div className="form-field">
-                    <label htmlFor="gerente">
-                        Gerente da Embarcação
-                    </label>
-
-                    <InputText
-                        id="gerente"
-                        placeholder="Inserir gerente"
-                        className="w-full"
-                        value={idManager}
-                        onChange={(e) => setIdManager(e.target.value)}
-                    />
-                </div>
-
-                <div className="form-field">
-                    <label htmlFor="email-operacional">
-                        Email Operacional
-                    </label>
-
-                    <InputText
-                        id="email-operacional"
-                        type="email"
-                        placeholder="Inserir email"
-                        className="w-full"
-                        value={operationalEmail}
-                        onChange={(e) => setOperationalEmail(e.target.value)}
-                    />
-                </div>
-
-            </div>
-        </Card>
-
-        </section>
-    );
+        <Input
+          id="operationalEmail"
+          label="E-mail operacional"
+          required
+          size="lg"
+          type="email"
+          value={formData.operationalEmail}
+          errorMessage={errors.operationalEmail}
+          onChange={(e) => onFieldChange("operationalEmail", e.target.value)}
+          placeholder="operacoes@auroraaustral.com.br"
+        />
+      </div>
+    </SectionCard>
+  );
 }

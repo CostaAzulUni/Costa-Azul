@@ -1,0 +1,465 @@
+/* ==========================================================================
+   Listagem da Frota de Embarcações — Costa Azul (Figma #5932:31630)
+   ========================================================================== */
+
+.vessel-fleet-page {
+  width: 100%;
+  min-height: 100%;
+  font-family: var(--font-sans);
+}
+
+.vessel-fleet-container {
+  width: 100%;
+  max-width: var(--container-max, 1200px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ==========================================================================
+   Cabeçalho da Página (Figma #5932:31687)
+   ========================================================================== */
+
+.vessel-fleet-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.vessel-fleet-header__left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.vessel-fleet-header__titles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.vessel-fleet-header__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  line-height: var(--leading-h1);
+  letter-spacing: var(--tracking-h1);
+  font-weight: var(--font-weight-h1);
+  color: var(--color-gray-900);
+}
+
+.vessel-fleet-header__subtitle {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
+  font-weight: var(--font-weight-body-md);
+  color: var(--color-gray-600);
+}
+
+.vessel-fleet-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   Linha de 4 KPIs (Figma #5932:31702)
+   ========================================================================== */
+
+.vessel-fleet-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+/* ==========================================================================
+   Barra de Filtros, Busca e Seletor de Visualização (Figma #5932:31730)
+   ========================================================================== */
+
+.vessel-fleet-toolbar-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.vessel-fleet-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  flex-wrap: wrap;
+}
+
+.vessel-fleet-toolbar__search {
+  flex: 1 1 240px;
+  max-width: 300px;
+}
+
+.vessel-fleet-toolbar__filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  flex: 2 1 auto;
+}
+
+.vessel-fleet-toolbar__select {
+  min-width: 190px;
+}
+
+/* Alternador Grade / Lista (32px de altura alinhado aos controles sm) */
+.vessel-fleet-view-switcher {
+  display: inline-flex;
+  align-items: center;
+  height: var(--space-8);
+  gap: 2px;
+  padding: 2px;
+  background-color: var(--color-gray-50);
+  border: var(--border-width) solid var(--color-outline);
+  border-radius: var(--radius-sm);
+}
+
+.vessel-fleet-view-switcher__btn {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  gap: 6px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-label-sm);
+  line-height: var(--leading-label-sm);
+  font-weight: var(--font-weight-label-sm);
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.vessel-fleet-view-switcher__btn:hover {
+  color: var(--color-gray-900);
+}
+
+.vessel-fleet-view-switcher__btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-200);
+}
+
+.vessel-fleet-view-switcher__btn--active {
+  background-color: var(--color-white);
+  color: var(--color-gray-900);
+  font-weight: 600;
+  box-shadow: var(--shadow-elev-1);
+}
+
+/* Linha de Filtros Aplicados (Figma #5932:32017) */
+.vessel-fleet-applied-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 10px var(--space-4);
+  background-color: var(--color-gray-50);
+  border-top: var(--border-width) solid var(--color-outline-variant);
+  flex-wrap: wrap;
+}
+
+.vessel-fleet-applied-filters__label {
+  font-family: var(--font-sans);
+  font-size: var(--text-label-sm);
+  line-height: var(--leading-label-sm);
+  font-weight: var(--font-weight-label-sm);
+  color: var(--color-gray-600);
+}
+
+.vessel-fleet-applied-filters__chips {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+}
+
+/* ==========================================================================
+   Grade de Embarcações — 3 colunas no desktop (Figma N · 01 #5932:31743)
+   ========================================================================== */
+
+.vessel-fleet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.vessel-fleet-pagination-bar {
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-white);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+}
+
+/* ==========================================================================
+   Tabela de Embarcações (Figma N · 02 #5932:31796)
+   ========================================================================== */
+
+.vessel-fleet-table-card {
+  width: 100%;
+}
+
+.vessel-table-ship {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.vessel-table-ship__thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-primary-100);
+}
+
+.vessel-table-ship__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vessel-table-ship__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.vessel-table-ship__name {
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: var(--text-label-md);
+  line-height: var(--leading-label-md);
+  font-weight: 600;
+  color: var(--color-gray-900);
+  cursor: pointer;
+}
+
+.vessel-table-ship__name:hover {
+  color: var(--color-primary-600);
+  text-decoration: underline;
+}
+
+.vessel-table-ship__imo {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-gray-600);
+}
+
+.vessel-table-trip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vessel-table-trip__empty {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-body-sm);
+  color: var(--color-gray-700);
+}
+
+.vessel-table-trip__sub {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  color: var(--color-gray-500);
+}
+
+.vessel-table-placeholder {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
+  color: var(--color-gray-400);
+}
+
+.vessel-table-capacity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.vessel-table-capacity__main {
+  font-family: var(--font-sans);
+  font-size: var(--text-num-md);
+  line-height: var(--leading-num-md);
+  font-weight: var(--font-weight-num-md);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-gray-900);
+}
+
+.vessel-table-capacity__sub {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-gray-500);
+}
+
+.vessel-table-port {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-body-sm);
+  color: var(--color-gray-700);
+}
+
+.vessel-table-compliance {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.vessel-table-compliance i {
+  margin-top: 2px;
+  font-size: 14px;
+}
+
+.vessel-table-compliance--ok i {
+  color: var(--color-success-500);
+}
+
+.vessel-table-compliance--warning i {
+  color: var(--color-warning-500);
+}
+
+.vessel-table-compliance--error i {
+  color: var(--color-error-500);
+}
+
+.vessel-table-compliance--neutral i {
+  color: var(--color-gray-400);
+}
+
+.vessel-table-compliance__texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vessel-table-compliance__label {
+  font-family: var(--font-sans);
+  font-size: var(--text-label-sm);
+  line-height: var(--leading-label-sm);
+  font-weight: var(--font-weight-label-sm);
+  color: var(--color-gray-800);
+}
+
+.vessel-table-compliance--warning .vessel-table-compliance__label {
+  color: var(--color-warning-900);
+}
+
+.vessel-table-compliance--error .vessel-table-compliance__label {
+  color: var(--color-error-900);
+}
+
+.vessel-table-compliance--neutral .vessel-table-compliance__label {
+  color: var(--color-gray-600);
+}
+
+.vessel-table-compliance__date {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-gray-500);
+}
+
+.vessel-table-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ==========================================================================
+   Estados de Carregamento e Vazio
+   ========================================================================== */
+
+.vessel-fleet-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-12) var(--space-6);
+  background-color: var(--color-white);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md);
+  line-height: var(--leading-body-md);
+  color: var(--color-gray-600);
+}
+
+.vessel-fleet-loading i {
+  font-size: 20px;
+  color: var(--color-primary-500);
+}
+
+.vessel-fleet-empty-wrapper {
+  background-color: var(--color-white);
+  border: var(--border-width) solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+}
+
+/* ==========================================================================
+   Responsividade
+   ========================================================================== */
+
+@media (max-width: 1100px) {
+  .vessel-fleet-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vessel-fleet-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .vessel-fleet-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .vessel-fleet-toolbar__search {
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .vessel-fleet-toolbar__select {
+    flex: 1 1 100%;
+  }
+
+  .vessel-fleet-grid {
+    grid-template-columns: 1fr;
+  }
+}

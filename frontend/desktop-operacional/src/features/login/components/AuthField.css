@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Campo de autenticação (Figma "Input email - large" / "Input password - large")
+   ========================================================================== */
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.auth-field__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 16px;
+}
+
+.auth-field__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--text-label-md);
+  line-height: 14px;
+  font-weight: 500;
+  color: var(--auth-label-color);
+}
+
+.auth-field__label--strong {
+  font-weight: 600;
+}
+
+.auth-field__required {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--auth-required-color);
+}
+
+.auth-field__control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: var(--space-12); /* 48px */
+  padding: 0 var(--space-3);
+  border: var(--border-width) solid var(--color-gray-700);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-white);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.auth-field__control--lg {
+  height: 52px;
+}
+
+.auth-field__control:focus-within {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.auth-field__control--invalid,
+.auth-field__control--invalid:focus-within {
+  border-color: var(--color-error-500);
+}
+
+.auth-field__control--invalid:focus-within {
+  box-shadow: 0 0 0 3px var(--color-error-100);
+}
+
+.auth-field__control--disabled {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+}
+
+.auth-field__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 16px;
+  color: var(--color-gray-900);
+}
+
+.auth-field__input::placeholder {
+  color: var(--color-gray-700);
+  opacity: 1;
+}
+
+.auth-field__control--invalid .auth-field__input::placeholder {
+  color: var(--color-error-500);
+}
+
+.auth-field__input:disabled {
+  cursor: not-allowed;
+}
+
+/* Remove o fundo amarelo/azul do autofill do navegador */
+.auth-field__input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-white) inset;
+  -webkit-text-fill-color: var(--color-gray-900);
+}
+
+/* Evita o botão nativo de revelar senha do Edge (já existe o toggle próprio) */
+.auth-field__input::-ms-reveal {
+  display: none;
+}
+
+.auth-field__icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.auth-field__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-gray-700);
+  cursor: pointer;
+}
+
+.auth-field__toggle .pi {
+  font-size: 20px;
+}
+
+.auth-field__toggle-icon--invalid {
+  color: var(--color-error-500);
+}
+
+.auth-field__toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-200);
+}
+
+.auth-field__toggle:disabled {
+  cursor: not-allowed;
+}

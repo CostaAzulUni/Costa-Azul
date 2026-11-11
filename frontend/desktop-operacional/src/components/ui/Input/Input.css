@@ -1,0 +1,242 @@
+/* ==========================================================================
+   Design System — Input (Fase 01)
+   ========================================================================== */
+
+.ui-input-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1); /* 4px entre label, controle e mensagem */
+  font-family: var(--font-sans);
+}
+
+.ui-input-field--full-width {
+  width: 100%;
+}
+
+/* ==========================================================================
+   Label e Cabeçalho do Campo (Variantes: default, attention *, Automático)
+   ========================================================================== */
+
+.ui-input__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.ui-input__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-label-md); /* 14px */
+  line-height: var(--leading-label-md); /* 20px */
+  font-weight: var(--font-weight-label-md); /* 500 */
+  color: var(--color-gray-800);
+}
+
+.ui-input__required {
+  color: var(--color-error-500);
+  font-weight: 600;
+}
+
+.ui-input__auto-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-700);
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   Wrapper Visual do Controle (Borda, Fundo, Tamanhos e Estados)
+   Usamos :focus-within para estilizar o container quando o <input> interno recebe foco.
+   ========================================================================== */
+
+.ui-input__control {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: var(--color-white);
+  border: var(--border-width) solid var(--color-outline);
+  border-radius: var(--radius-sm); /* 8px */
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* Tamanhos (sm = 32px, md = 40px, lg = 48px) */
+.ui-input__control--sm {
+  height: var(--space-8); /* 32px */
+  padding: 0 10px;
+  gap: 6px;
+}
+
+.ui-input__control--md {
+  height: 40px;
+  padding: 0 var(--space-3); /* 0 12px */
+  gap: var(--space-2); /* 8px */
+}
+
+.ui-input__control--lg {
+  height: var(--space-12); /* 48px */
+  padding: 0 var(--space-4); /* 0 16px */
+  gap: var(--space-2); /* 8px */
+}
+
+/* Estado Hover */
+.ui-input__control:hover:not(.ui-input__control--disabled):not(.ui-input__control--readonly):not(.ui-input__control--error) {
+  border-color: var(--color-primary-400);
+}
+
+/* Estado Focus */
+.ui-input__control:focus-within:not(.ui-input__control--disabled):not(.ui-input__control--readonly) {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+/* Estado Error */
+.ui-input__control--error {
+  border-color: var(--color-error-500);
+}
+
+.ui-input__control--error:focus-within {
+  border-color: var(--color-error-500);
+  box-shadow: 0 0 0 3px var(--color-error-100);
+}
+
+/* Estado Somente Leitura (Read-only / Calculado pelo sistema) */
+.ui-input__control--readonly {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-outline-variant);
+}
+
+/* Estado Disabled */
+.ui-input__control--disabled {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Elemento <input> Nativo Interno
+   ========================================================================== */
+
+.ui-input__element {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md); /* 14px */
+  line-height: var(--leading-body-md); /* 20px */
+  color: var(--color-gray-900);
+}
+
+.ui-input__control--sm .ui-input__element {
+  font-size: var(--text-body-sm); /* 13px */
+  line-height: var(--leading-body-sm);
+}
+
+.ui-input__element--tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-input__element::placeholder {
+  color: var(--color-gray-400);
+}
+
+.ui-input__element:disabled {
+  color: var(--color-gray-500);
+  cursor: not-allowed;
+}
+
+.ui-input__element:read-only {
+  color: var(--color-gray-700);
+}
+
+/* ==========================================================================
+   Ícones, Sufixo de Unidade e Botão de Senha
+   ========================================================================== */
+
+.ui-input__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-gray-400);
+  font-size: 16px;
+}
+
+.ui-input__control--sm .ui-input__icon {
+  font-size: 14px;
+}
+
+.ui-input__control--lg .ui-input__icon {
+  font-size: 18px;
+}
+
+.ui-input__control--error .ui-input__icon--error {
+  color: var(--color-error-500);
+}
+
+.ui-input__unit {
+  flex-shrink: 0;
+  font-size: var(--text-caption); /* 12px */
+  line-height: var(--leading-caption);
+  font-weight: 500;
+  color: var(--color-gray-500);
+  user-select: none;
+}
+
+.ui-input__password-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: var(--space-1);
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-gray-500);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.ui-input__password-toggle:hover:not(:disabled) {
+  color: var(--color-gray-800);
+}
+
+.ui-input__password-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-200);
+}
+
+/* ==========================================================================
+   Mensagens de Apoio e Erro
+   ========================================================================== */
+
+.ui-input__helper {
+  margin: 0;
+  font-size: var(--text-caption); /* 12px */
+  line-height: var(--leading-caption); /* 16px */
+  color: var(--color-gray-500);
+}
+
+.ui-input__error {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--text-caption); /* 12px */
+  line-height: var(--leading-caption); /* 16px */
+  color: var(--color-error-500);
+  font-weight: 500;
+}

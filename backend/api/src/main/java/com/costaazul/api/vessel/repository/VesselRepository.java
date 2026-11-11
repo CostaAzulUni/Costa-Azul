@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,12 +35,27 @@ public interface VesselRepository extends JpaRepository<Vessel, UUID> {
           AND (:porto = '' OR LOWER(COALESCE(v.mainTerminal, '')) LIKE LOWER(CONCAT('%', :porto, '%')))
           AND (:idPorto IS NULL OR v.idHomePort = :idPorto)
           AND (:conformidade = '' OR v.operationalStatus = :conformidade)
+          AND (:status = '' OR v.operationalStatus = :status)
+          AND (:porto = '' OR LOWER(COALESCE(v.mainTerminal, '')) LIKE LOWER(CONCAT('%', :porto, '%'))
+               OR LOWER(COALESCE(CAST(v.idHomePort AS string), '')) LIKE LOWER(CONCAT('%', :porto, '%')))
+          AND (
+               :conformidade = ''
+               OR (:conformidade = 'MISSING' AND v.certificateExpiryDate IS NULL)
+               OR (:conformidade = 'EXPIRED' AND v.certificateExpiryDate IS NOT NULL AND v.certificateExpiryDate < :today)
+               OR (:conformidade = 'EXPIRING_SOON' AND v.certificateExpiryDate IS NOT NULL AND v.certificateExpiryDate >= :today AND v.certificateExpiryDate <= :warningLimitDate)
+               OR (:conformidade = 'VALID' AND v.certificateExpiryDate IS NOT NULL AND v.certificateExpiryDate > :warningLimitDate)
+          )
     """)
     Page<Vessel> searchVessels(
             @Param("nome") String nome,
             @Param("porto") String porto,
             @Param("idPorto") UUID idPorto,
             @Param("conformidade") String conformidade,
+            @Param("status") String status,
+            @Param("porto") String porto,
+            @Param("conformidade") String conformidade,
+            @Param("today") LocalDate today,
+            @Param("warningLimitDate") LocalDate warningLimitDate,
             Pageable pageable
     );
 

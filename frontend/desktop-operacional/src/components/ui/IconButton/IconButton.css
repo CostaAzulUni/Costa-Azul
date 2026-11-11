@@ -1,0 +1,107 @@
+/* ==========================================================================
+   Design System — IconButton (Fase 02)
+   ========================================================================== */
+
+.ui-icon-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.ui-icon-button--md {
+  width: 36px;
+  height: 36px;
+}
+
+.ui-icon-button--sm {
+  width: var(--space-8); /* 32px */
+  height: var(--space-8);
+}
+
+.ui-icon-button__icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.ui-icon-button--sm .ui-icon-button__icon {
+  font-size: 14px;
+}
+
+/* Outline */
+.ui-icon-button--outline {
+  background-color: var(--color-white);
+  border-color: var(--color-outline);
+  color: var(--color-gray-700);
+}
+
+/* Estados compartilhados */
+.ui-icon-button:hover:not(:disabled) {
+  background-color: var(--color-gray-50);
+  color: var(--color-gray-900);
+}
+
+.ui-icon-button:active:not(:disabled) {
+  background-color: var(--color-gray-100);
+}
+
+.ui-icon-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.ui-icon-button:disabled {
+  cursor: not-allowed;
+  color: var(--color-gray-400);
+  background-color: transparent;
+}
+
+.ui-icon-button--outline:disabled {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+}
+
+/* Indicadores de notificação */
+.ui-icon-button__dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-error-500);
+  box-shadow: 0 0 0 2px var(--color-white);
+}
+
+.ui-icon-button__count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-error-500);
+  color: var(--color-white);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px var(--color-white);
+}

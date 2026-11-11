@@ -1,0 +1,96 @@
+/* ==========================================================================
+   Ajustes de espaçamento por tela de status (valores dos frames do Figma)
+   ========================================================================== */
+
+/* Conta bloqueada (#3964:1278): padding 46 × 54, blocos a 54 px, ações a 20 px */
+.auth-card.status-blocked {
+  --auth-status-gap: 54px;
+  --auth-status-message-gap: 20px;
+  --auth-status-actions-gap: 20px;
+  padding: 46px 54px;
+}
+
+.status-blocked .auth-header {
+  gap: 22px;
+}
+
+/* Acesso não autorizado (#3939:4948) */
+.auth-card.status-denied {
+  --auth-status-gap: 38px;
+  --auth-status-actions-gap: 30px;
+}
+
+.status-denied .auth-header {
+  gap: 15px;
+}
+
+.status-denied .auth-status__message {
+  margin-top: 52px; /* 80 px do bloco + 10 px de padding − 38 px de gap */
+  color: var(--color-gray-700);
+}
+
+.ui-button.auth-button.status-denied__switch {
+  height: 50px;
+}
+
+/* Sessão expirada (#3977:6091): ilustração ancorada embaixo */
+.status-session .auth-status__illustration img {
+  object-position: bottom;
+}
+
+/* Link expirado (#3967:5761): ilustração a 38 px, demais blocos a 32 px */
+.auth-card.status-link {
+  --auth-status-gap: 32px;
+  --auth-status-actions-gap: 32px;
+}
+
+.status-link .auth-status__illustration {
+  margin-bottom: 6px;
+}
+
+.status-link .auth-card__body {
+  padding-bottom: 0;
+}
+
+.status-link .auth-status__illustration img {
+  width: 200px;
+  height: 250px;
+}
+
+/* Telas baixas: espaçamentos e ilustrações menores para caber sem rolagem */
+@media (max-height: 820px) {
+  .auth-card.auth-status,
+  .auth-card.status-denied,
+  .auth-card.status-link {
+    --auth-status-gap: var(--space-6);
+    --auth-status-actions-gap: var(--space-4);
+  }
+
+  .auth-card.status-blocked {
+    --auth-status-gap: var(--space-6);
+    padding: var(--space-8) 54px;
+  }
+
+  .status-denied .auth-status__message {
+    margin-top: var(--space-2);
+  }
+
+  .status-link .auth-status__illustration {
+    margin-bottom: 0;
+  }
+
+  .status-link .auth-status__illustration img {
+    width: 160px;
+    height: 200px;
+  }
+
+  .auth-status--success:not(.status-link) .auth-status__illustration img {
+    width: 200px;
+    height: 200px;
+  }
+
+  .auth-status--illustrated .auth-card__body,
+  .auth-status--success .auth-card__body {
+    padding-bottom: 0;
+  }
+}

@@ -1,40 +1,34 @@
 import api from "./api";
 
+export {
+  ERP_ROLES,
+  ROLE_KEY,
+  TOKEN_KEY,
+  endSession as logout,
+  getRoles,
+  getToken,
+  hasErpAccess,
+  hasSession,
+  isAuthenticated,
+  isTokenExpired,
+  startSession,
+} from "./session";
 
-export const TOKEN_KEY = "@costaazul-token";
-export const ROLE_KEY = "@costaazul-role";
-
-export async function loginUser(
-    credencial: string,
-    senha: string
-){
-    const response = await api.post('/api/auth/login', { 
-       email: credencial, 
-        senha 
-    });
-    return response.data;
+export interface LoginRequestDTO {
+  email: string;
+  senha: string;
 }
 
+/** Resposta de POST /api/auth/login (TokenResponse.java): apenas o JWT. Os perfis vêm na claim `roles`. */
+export interface LoginResponseDTO {
+  token: string;
+}
 
-export const login = (token: string, role: string) => {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(ROLE_KEY, role);
-};
-
-export const isAuthenticated = () => {
-    return localStorage.getItem(TOKEN_KEY) !== null;
-};
-
-export const getToken = () => {
-    return localStorage.getItem(TOKEN_KEY);
-};
-
-export const getRole = () => {
-    return localStorage.getItem(ROLE_KEY);
-};
-
-
-export const logout = () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(ROLE_KEY);
-};
+export async function loginUser(
+  email: string,
+  senha: string
+): Promise<LoginResponseDTO> {
+  const payload: LoginRequestDTO = { email, senha };
+  const response = await api.post<LoginResponseDTO>("/api/auth/login", payload);
+  return response.data;
+}

@@ -34,7 +34,7 @@ public class VesselController {
     @GetMapping
     @Operation(
             summary = "Listar e pesquisar embarcações da frota (Paginado)",
-            description = "Devolve a lista resumida de navios paginada com filtros opcionais por nome/IMO, porto atual e conformidade (em operação, em manutenção ou fora de serviço)."
+            description = "Devolve a lista resumida de navios paginada (padrão: page=1, limit=20) com filtros opcionais por nome/IMO, status operacional, porto/terminal base e conformidade documental."
     )
     public ResponseEntity<PagedVesselResponseDTO> listVessels(
             @Parameter(description = "Pesquisa parcial por nome do navio ou número IMO (ex: Atlantis)")
@@ -49,13 +49,19 @@ public class VesselController {
             @Parameter(description = "Filtro de conformidade/status: EM_OPERACAO (ACTIVE), EM_MANUTENCAO (MAINTENANCE) ou FORA_DE_SERVICO (INACTIVE)")
             @RequestParam(name = "conformidade", required = false) String conformidade,
 
+            @Parameter(description = "Filtro opcional por porto base ou terminal principal")
+            @RequestParam(name = "porto", required = false) String porto,
+
+            @Parameter(description = "Filtro opcional por conformidade do certificado ISM (VALID, EXPIRING_SOON, EXPIRED, MISSING)")
+            @RequestParam(name = "conformidade", required = false) String conformidade,
+
             @Parameter(description = "Número da página (começa em 1)")
             @RequestParam(name = "page", defaultValue = "1") int page,
 
             @Parameter(description = "Quantidade de navios por página")
             @RequestParam(name = "limit", defaultValue = "20") int limit
     ) {
-        return ResponseEntity.ok(vesselService.listVessels(nome, porto, idPorto, conformidade, page, limit));
+        return ResponseEntity.ok(vesselService.listVessels(nome, status, porto, conformidade, page, limit));
     }
 
     @GetMapping("/{id}")
