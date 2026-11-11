@@ -113,9 +113,7 @@ public class VesselService {
             int page,
             int limit
     ) {
-    public PagedVesselResponseDTO listVessels(String nome, String status, int page, int limit) {
-        return listVessels(nome, status, null, null, page, limit);
-    }
+
         int pageIndex = Math.max(0, page - 1);
         int pageSize = Math.max(1, limit);
 
@@ -138,16 +136,6 @@ public class VesselService {
 
         LocalDate today = LocalDate.now();
         LocalDate warningLimitDate = today.plusDays(30);
-
-        Page<Vessel> vesselPage = vesselRepository.searchVessels(
-                searchFilter,
-                statusFilter,
-                normalizedPort,
-                complianceFilter,
-                today,
-                warningLimitDate,
-                pageable
-        );
 
         List<VesselSummaryDTO> summaries = vesselPage.getContent()
                 .stream()
