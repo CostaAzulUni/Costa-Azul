@@ -30,17 +30,32 @@ public interface VesselRepository extends JpaRepository<Vessel, UUID> {
     @EntityGraph(attributePaths = "company")
     @Query("""
         SELECT v FROM Vessel v
-        WHERE (:nome = '' OR LOWER(v.vesselName) LIKE LOWER(CONCAT('%', :nome, '%'))
-               OR LOWER(v.imoNumber) LIKE LOWER(CONCAT('%', :nome, '%')))
-          AND (:porto = '' OR LOWER(COALESCE(v.mainTerminal, '')) LIKE LOWER(CONCAT('%', :porto, '%')))
-          AND (:idPorto IS NULL OR v.idHomePort = :idPorto)
-          AND (:conformidade = '' OR v.operationalStatus = :conformidade)
+       WHERE (:nome = '' OR LOWER(v.vesselName) LIKE LOWER(CONCAT('%', :nome, '%'))
+            OR LOWER(v.imoNumber) LIKE LOWER(CONCAT('%', :nome, '%')))
+       AND (:porto = '' OR LOWER(COALESCE(v.mainTerminal, '')) LIKE LOWER(CONCAT('%', :porto, '%')))
+       AND (:idPorto IS NULL OR v.idHomePort = :idPorto)
+       AND (:status = '' OR v.operationalStatus = :status)
+       AND ( :conformidade = ''
+                OR (:conformidade = 'MISSING' AND v.certificateExpiryDate IS NULL)
+                OR (:conformidade = 'EXPIRED' AND v.certificateExpiryDate < :today)
+                OR (
+                    :conformidade = 'EXPIRING_SOON'
+                    AND v.certificateExpiryDate BETWEEN :today AND :warningLimitDate
+                )
+                OR (
+                    :conformidade = 'VALID'
+                    AND v.certificateExpiryDate > :warningLimitDate
+                )
+            )
     """)
     Page<Vessel> searchVessels(
             @Param("nome") String nome,
             @Param("porto") String porto,
             @Param("idPorto") UUID idPorto,
+            @Param("status") String status,
             @Param("conformidade") String conformidade,
+            @Param("today") LocalDate today,
+            @Param("warningLimitDate") LocalDate warningLimitDate,
             Pageable pageable
     );
 

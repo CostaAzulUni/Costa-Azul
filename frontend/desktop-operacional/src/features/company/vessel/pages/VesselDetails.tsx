@@ -21,6 +21,7 @@ import {
   type ToastVariant,
 } from "../../../../components";
 import {
+  deleteVessel,
   getVesselById,
   updateVessel,
   type VesselRequestDTO,
@@ -86,6 +87,9 @@ export function VesselDetails() {
   const tabsIdPrefix = useId();
   const routeState = location.state as VesselLocationState | null;
 
+const [deleteConfirmation, setDeleteConfirmation] = useState("");
+const [isDeleting, setIsDeleting] = useState(false);
+
   const [fetchedVessel, setFetchedVessel] = useState<VesselResponseDTO | null>(
     null
   );
@@ -121,9 +125,6 @@ export function VesselDetails() {
   );
   const [editErrors, setEditErrors] = useState<VesselFieldErrors>({});
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
-  const [deleteLimitationMessage, setDeleteLimitationMessage] = useState<
-    string | null
-  >(null);
   const [toastFeedback, setToastFeedback] = useState<{
     variant: ToastVariant;
     message: string;
@@ -605,28 +606,50 @@ export function VesselDetails() {
   };
 
   const handleOpenDeleteModal = () => {
-    setDeleteLimitationMessage(
-      "O endpoint DELETE (/api/erp/vessels/{id}) ainda não está implementado no backend (VesselController). A operação está bloqueada e não foi simulada para preservar a integridade dos dados."
-    );
-    setIsDeleteModalOpen(true);
-  };
+  setDeleteConfirmation("");
+  
+  setIsDeleteModalOpen(true);
+};
 
-  const handleCloseDeleteModal = () => {
+const handleCloseDeleteModal = () => {
+  if (isDeleting) return;
+
+  setIsDeleteModalOpen(false);
+  setDeleteConfirmation("");
+  
+};
+
+const handleConfirmDeleteVessel = async () => {
+  if (!vessel || isDeleting) return;
+
+  const confirmation = deleteConfirmation.trim();
+  const vesselName = vessel.vesselName.trim();
+
+  if (confirmation.toLowerCase() !== vesselName.toLowerCase()) {
+    return;
+  }
+
+  try {
+    setIsDeleting(true);
+
+    await deleteVessel(vessel.idVessel, confirmation);
+
     setIsDeleteModalOpen(false);
-    setDeleteLimitationMessage(null);
-  };
 
-  const handleConfirmDeleteVessel = () => {
-    const limitationText =
-      "O endpoint DELETE (/api/erp/vessels/{id}) ainda não está implementado no backend (VesselController). A exclusão não foi simulada para preservar a integridade dos dados. Caso deseje retirar a embarcação da frota ativa, utilize 'Editar embarcação' para alterar o status operacional para 'Fora de serviço'.";
-    setDeleteLimitationMessage(limitationText);
+    navigate("/vessel");
+  } catch (error) {
     setToastFeedback({
-      variant: "warning",
-      message: "Exclusão pendente de endpoint no backend",
-      description:
-        "O endpoint DELETE /api/erp/vessels/{id} ainda não foi implementado no servidor.",
+      variant: "error",
+      message: "Não foi possível remover a embarcação",
+      description: parseVesselApiError(
+        error,
+        "Ocorreu um erro ao tentar excluir a embarcação."
+      ),
     });
-  };
+  } finally {
+    setIsDeleting(false);
+  }
+};
 
   const safePhotoUrl = resolveSafeVesselPhotoUrl(vessel.photoUrl);
 
@@ -2244,15 +2267,20 @@ export function VesselDetails() {
               variant="danger"
               size="md"
               icon="pi-trash"
-              disabled
+              disabled={
+                  isDeleting ||
+                  deleteConfirmation.trim().toLowerCase() !==
+                    vessel.vesselName.trim().toLowerCase()
+              }
               onClick={handleConfirmDeleteVessel}
-              title="Aguardando implementação do endpoint DELETE /api/erp/vessels/{id} no backend"
+              title="Digite o nome da embarcação para habilitar a remoção"
             >
-              Confirmar remoção (pendente no backend)
+              {isDeleting ? "Removendo..." : "Confirmar remoção"}
             </Button>
           </>
         }
       >
+
         <div className="vessel-details-delete-modal">
           <div className="vessel-details-delete-modal__section-header">
             <span className="vessel-details-delete-modal__section-title">
@@ -2341,13 +2369,17 @@ export function VesselDetails() {
             </span>
           </div>
 
-          {deleteLimitationMessage && (
-            <Alert
-              variant="warning"
-              title="Operação de exclusão pendente no backend"
-              description={deleteLimitationMessage}
-            />
-          )}
+           {/* NOVO CAMPO DE CONFIRMAÇÃO */}
+          <Input
+            id="delete-vessel-confirmation"
+            label={`Digite "${vessel.vesselName}" para confirmar`}
+            value={deleteConfirmation}
+            onChange={(event) => setDeleteConfirmation(event.target.value)}
+            placeholder="Nome da embarcação"
+          />
+
+                  
+          
         </div>
       </Modal>
     </div>
