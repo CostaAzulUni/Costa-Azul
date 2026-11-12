@@ -1,3 +1,4 @@
+
 package com.costaazul.api.vessel.service;
 
 import com.costaazul.api.vessel.domain.Company;
@@ -29,9 +30,11 @@ public class VesselService {
     private final CompanyRepository companyRepository;
     private final VesselDocumentRepository documentRepository;
 
-    public VesselService(VesselRepository vesselRepository,
-                         CompanyRepository companyRepository,
-                         VesselDocumentRepository documentRepository) {
+    public VesselService(
+            VesselRepository vesselRepository,
+            CompanyRepository companyRepository,
+            VesselDocumentRepository documentRepository
+    ) {
         this.vesselRepository = vesselRepository;
         this.companyRepository = companyRepository;
         this.documentRepository = documentRepository;
@@ -40,10 +43,15 @@ public class VesselService {
     @Transactional
     public VesselResponseDTO createVessel(VesselRequestDTO dto) {
         if (vesselRepository.existsByImoNumber(dto.imoNumber())) {
-            throw new IllegalArgumentException("Já existe uma embarcação cadastrada com este número IMO.");
+            throw new IllegalArgumentException(
+                    "Já existe uma embarcação cadastrada com este número IMO."
+            );
         }
+
         if (vesselRepository.existsByNationalRegistrationNumber(dto.nationalRegistrationNumber())) {
-            throw new IllegalArgumentException("Já existe uma embarcação com este Número de Registro Nacional.");
+            throw new IllegalArgumentException(
+                    "Já existe uma embarcação com este Número de Registro Nacional."
+            );
         }
 
         Company company = (dto.idCompany() != null)
@@ -79,7 +87,9 @@ public class VesselService {
         vessel.setClassificationSociety(dto.classificationSociety());
         vessel.setIsmCertification(dto.ismCertification());
         vessel.setCertificateExpiryDate(dto.certificateExpiryDate());
-        vessel.setOperationalStatus(dto.operationalStatus() != null ? dto.operationalStatus() : "ACTIVE");
+        vessel.setOperationalStatus(
+                dto.operationalStatus() != null ? dto.operationalStatus() : "ACTIVE"
+        );
         vessel.setIdHomePort(dto.idHomePort());
         vessel.setMainTerminal(dto.mainTerminal());
         vessel.setIdManager(dto.idManager());
@@ -107,35 +117,40 @@ public class VesselService {
     @Transactional(readOnly = true)
     public PagedVesselResponseDTO listVessels(
             String nome,
+            String status,
             String porto,
             UUID idPorto,
             String conformidade,
             int page,
             int limit
     ) {
-
         int pageIndex = Math.max(0, page - 1);
         int pageSize = Math.max(1, limit);
 
-        Pageable pageable = PageRequest.of(pageIndex, pageSize, Sort.by("vesselName").ascending());
+        Pageable pageable = PageRequest.of(
+                pageIndex,
+                pageSize,
+                Sort.by("vesselName").ascending()
+        );
 
         String searchFilter = (nome == null) ? "" : nome.trim();
+        String statusFilter = normalizeStatusFilter(status);
         String portoFilter = (porto == null) ? "" : porto.trim();
         String conformidadeFilter = normalizeConformidadeFilter(conformidade);
+
+        LocalDate today = LocalDate.now();
+        LocalDate warningLimitDate = today.plusDays(30);
 
         Page<Vessel> vesselPage = vesselRepository.searchVessels(
                 searchFilter,
                 portoFilter,
                 idPorto,
+                statusFilter,
                 conformidadeFilter,
+                today,
+                warningLimitDate,
                 pageable
         );
-        String complianceFilter = (conformidade == null || "ALL".equalsIgnoreCase(conformidade.trim()))
-                ? ""
-                : conformidade.trim().toUpperCase();
-
-        LocalDate today = LocalDate.now();
-        LocalDate warningLimitDate = today.plusDays(30);
 
         List<VesselSummaryDTO> summaries = vesselPage.getContent()
                 .stream()
@@ -151,42 +166,60 @@ public class VesselService {
         );
     }
 
-    // Traduz os termos do filtro do Frontend para os valores da constraint do PostgreSQL
-    private String normalizeConformidadeFilter(String rawFilter) {
-        if (rawFilter == null || rawFilter.isBlank() || rawFilter.equalsIgnoreCase("TODOS") || rawFilter.equalsIgnoreCase("TODAS")) {
+    // NORMALIZA O FILTRO DE STATUS OPERACIONAL
+    private String normalizeStatusFilter(String rawFilter) {
+        if (rawFilter == null || rawFilter.isBlank()
+                || rawFilter.equalsIgnoreCase("TODOS")
+                || rawFilter.equalsIgnoreCase("TODAS")
+                || rawFilter.equalsIgnoreCase("ALL")) {
             return "";
         }
 
         return switch (rawFilter.trim().toUpperCase()) {
             case "EM_OPERACAO", "EM OPERAÇÃO", "EM OPERACAO", "ACTIVE" -> "ACTIVE";
-            case "EM_MANUTENCAO", "EM MANUTENÇÃO", "EM MANUTENCAO", "MAINTENANCE" -> "MAINTENANCE";
-            case "FORA_DE_SERVICO", "FORA DE SERVIÇO", "FORA DE SERVICO", "INACTIVE" -> "INACTIVE";
+            case "EM_MANUTENCAO", "EM MANUTENÇÃO", "EM MANUTENCAO" -> "MAINTENANCE";
+            case "FORA_DE_SERVICO", "FORA DE SERVIÇO", "FORA DE SERVICO" -> "INACTIVE";
             case "DOCA_SECA", "DRY_DOCK" -> "DRY_DOCK";
             default -> rawFilter.trim().toUpperCase();
         };
     }
 
+    // NORMALIZA O FILTRO DE CONFORMIDADE
+    private String normalizeConformidadeFilter(String rawFilter) {
+        if (rawFilter == null || rawFilter.isBlank()
+                || rawFilter.equalsIgnoreCase("TODOS")
+                || rawFilter.equalsIgnoreCase("TODAS")
+                || rawFilter.equalsIgnoreCase("ALL")) {
+            return "";
+        }
+
+        return rawFilter.trim().toUpperCase();
+    }
+
     @Transactional(readOnly = true)
     public VesselResponseDTO getVesselById(UUID idVessel) {
         Vessel v = vesselRepository.findWithCompanyByIdVessel(idVessel)
-                .orElseThrow(() -> new IllegalArgumentException("Embarcação não encontrada com o ID: " + idVessel));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Embarcação não encontrada com o ID: " + idVessel
+                ));
 
         long deckCount = vesselRepository.countDecksByVesselId(idVessel);
         long cabinCount = vesselRepository.countCabinsByVesselId(idVessel);
         long totalAreas = vesselRepository.countAreasByVesselId(idVessel);
 
-        List<VesselResponseDTO.DocumentResponseDTO> docs = documentRepository.findByVesselIdVessel(idVessel)
-                .stream()
-                .map(d -> new VesselResponseDTO.DocumentResponseDTO(
-                        d.getIdDocument(),
-                        d.getDocumentType(),
-                        d.getFileName(),
-                        d.getFileUrl(),
-                        d.getMimeType(),
-                        d.getFileSizeBytes(),
-                        d.getUploadedAt()
-                ))
-                .toList();
+        List<VesselResponseDTO.DocumentResponseDTO> docs =
+                documentRepository.findByVesselIdVessel(idVessel)
+                        .stream()
+                        .map(d -> new VesselResponseDTO.DocumentResponseDTO(
+                                d.getIdDocument(),
+                                d.getDocumentType(),
+                                d.getFileName(),
+                                d.getFileUrl(),
+                                d.getMimeType(),
+                                d.getFileSizeBytes(),
+                                d.getUploadedAt()
+                        ))
+                        .toList();
 
         return new VesselResponseDTO(
                 v.getIdVessel(),
@@ -226,31 +259,42 @@ public class VesselService {
         );
     }
 
-    // EDITAR EMBARCAÇÃO (Suporta edicao completa ou edicao parcial por secao/card)
+    // EDITAR EMBARCAÇÃO
     @Transactional
     public VesselResponseDTO updateVessel(UUID idVessel, VesselRequestDTO dto) {
         Vessel vessel = vesselRepository.findWithCompanyByIdVessel(idVessel)
-                .orElseThrow(() -> new IllegalArgumentException("Embarcação não encontrada com o ID: " + idVessel));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Embarcação não encontrada com o ID: " + idVessel
+                ));
 
-        // Valida se o novo IMO já está em uso por outro navio
+        // Valida o novo IMO
         if (dto.imoNumber() != null && !dto.imoNumber().isBlank()) {
             if (vesselRepository.existsByImoNumberAndIdVesselNot(dto.imoNumber(), idVessel)) {
-                throw new IllegalArgumentException("Já existe outra embarcação cadastrada com este número IMO.");
+                throw new IllegalArgumentException(
+                        "Já existe outra embarcação cadastrada com este número IMO."
+                );
             }
             vessel.setImoNumber(dto.imoNumber());
         }
 
-        // Valida se o novo Registro Nacional já está em uso por outro navio
-        if (dto.nationalRegistrationNumber() != null && !dto.nationalRegistrationNumber().isBlank()) {
-            if (vesselRepository.existsByNationalRegistrationNumberAndIdVesselNot(dto.nationalRegistrationNumber(), idVessel)) {
-                throw new IllegalArgumentException("Já existe outra embarcação com este Número de Registro Nacional.");
+        // Valida o novo Registro Nacional
+        if (dto.nationalRegistrationNumber() != null
+                && !dto.nationalRegistrationNumber().isBlank()) {
+            if (vesselRepository.existsByNationalRegistrationNumberAndIdVesselNot(
+                    dto.nationalRegistrationNumber(), idVessel
+            )) {
+                throw new IllegalArgumentException(
+                        "Já existe outra embarcação com este Número de Registro Nacional."
+                );
             }
             vessel.setNationalRegistrationNumber(dto.nationalRegistrationNumber());
         }
 
         if (dto.idCompany() != null) {
             Company company = companyRepository.findById(dto.idCompany())
-                    .orElseThrow(() -> new IllegalArgumentException("Empresa responsável não encontrada."));
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Empresa responsável não encontrada."
+                    ));
             vessel.setCompany(company);
         }
 
@@ -270,7 +314,7 @@ public class VesselService {
         if (dto.maxServiceSpeed() != null) vessel.setMaxServiceSpeed(dto.maxServiceSpeed());
         if (dto.mainPropulsion() != null) vessel.setMainPropulsion(dto.mainPropulsion());
 
-        // Capacidade & Acomodação
+        // Capacidade e Acomodação
         if (dto.maxPassengerCapacity() != null) vessel.setMaxPassengerCapacity(dto.maxPassengerCapacity());
         if (dto.maxCrewCapacity() != null) vessel.setMaxCrewCapacity(dto.maxCrewCapacity());
         if (dto.lifeboatTotalCapacity() != null) vessel.setLifeboatTotalCapacity(dto.lifeboatTotalCapacity());
@@ -283,7 +327,7 @@ public class VesselService {
             vessel.setOperationalStatus(dto.operationalStatus().toUpperCase());
         }
 
-        // Base Operacional & Gestão
+        // Base Operacional e Gestão
         if (dto.idHomePort() != null) vessel.setIdHomePort(dto.idHomePort());
         if (dto.mainTerminal() != null) vessel.setMainTerminal(dto.mainTerminal());
         if (dto.idManager() != null) vessel.setIdManager(dto.idManager());
@@ -291,7 +335,7 @@ public class VesselService {
 
         Vessel updatedVessel = vesselRepository.save(vessel);
 
-        // Se novos documentos forem enviados durante a edição
+        // Novos documentos enviados durante a edição
         if (dto.documents() != null && !dto.documents().isEmpty()) {
             for (VesselRequestDTO.DocumentDTO docDto : dto.documents()) {
                 VesselDocument doc = new VesselDocument();
@@ -333,28 +377,40 @@ public class VesselService {
         if (expiryDate == null) {
             return "Sem certificado registado";
         }
+
         long daysUntilExpiry = ChronoUnit.DAYS.between(LocalDate.now(), expiryDate);
+
         if (daysUntilExpiry < 0) {
             return "Certificado vencido";
         } else if (daysUntilExpiry <= 30) {
             return "1 certificado vence em " + daysUntilExpiry + " dias";
         }
+
         return "Conformidade em dia";
     }
 
-    // REMOVER EMBARCACAO COM VALIDACAO
+    // REMOVER EMBARCAÇÃO COM VALIDAÇÃO
     @Transactional
     public void deleteVessel(UUID idVessel, String confirmacao) {
         Vessel vessel = vesselRepository.findById(idVessel)
-                .orElseThrow(() -> new IllegalArgumentException("Embarcação não encontrada com o ID: " + idVessel));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Embarcação não encontrada com o ID: " + idVessel
+                ));
 
-        // Se o frontend enviar o texto digitado no modal, valida se corresponde ao Nome, IMO ou Registro Nacional
         if (confirmacao != null && !confirmacao.isBlank()) {
             String input = confirmacao.trim();
-            boolean matchesName = vessel.getVesselName().equalsIgnoreCase(input);
-            boolean matchesImo = vessel.getImoNumber().equalsIgnoreCase(input)
-                    || ("IMO " + vessel.getImoNumber()).equalsIgnoreCase(input);
-            boolean matchesReg = vessel.getNationalRegistrationNumber().equalsIgnoreCase(input);
+
+            boolean matchesName = vessel.getVesselName() != null
+                    && vessel.getVesselName().equalsIgnoreCase(input);
+
+            boolean matchesImo = vessel.getImoNumber() != null
+                    && (
+                    vessel.getImoNumber().equalsIgnoreCase(input)
+                            || ("IMO " + vessel.getImoNumber()).equalsIgnoreCase(input)
+            );
+
+            boolean matchesReg = vessel.getNationalRegistrationNumber() != null
+                    && vessel.getNationalRegistrationNumber().equalsIgnoreCase(input);
 
             if (!matchesName && !matchesImo && !matchesReg) {
                 throw new IllegalArgumentException(

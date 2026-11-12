@@ -381,3 +381,12 @@ export async function patchVessel(
   );
   return response.data;
 }
+
+export async function deleteVessel(
+  idVessel: string,
+  confirmacao: string
+): Promise<void> {
+  await api.delete(`/api/erp/vessels/${idVessel}`, {
+    params: { confirmacao },
+  });
+}

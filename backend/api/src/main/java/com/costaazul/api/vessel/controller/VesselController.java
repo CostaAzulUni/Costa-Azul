@@ -40,14 +40,13 @@ public class VesselController {
             @Parameter(description = "Pesquisa parcial por nome do navio ou número IMO (ex: Atlantis)")
             @RequestParam(name = "nome", required = false) String nome,
 
-            @Parameter(description = "Filtro por nome do porto/terminal onde o navio está atracado (ex: Santos)")
-            @RequestParam(name = "porto", required = false) String porto,
+            @Parameter(description = "Filtro opcional por status operacional")
+            @RequestParam(name = "status", required = false) String status,
+
 
             @Parameter(description = "Filtro opcional pelo UUID do porto base (id_home_port)")
             @RequestParam(name = "idPorto", required = false) UUID idPorto,
 
-            @Parameter(description = "Filtro de conformidade/status: EM_OPERACAO (ACTIVE), EM_MANUTENCAO (MAINTENANCE) ou FORA_DE_SERVICO (INACTIVE)")
-            @RequestParam(name = "conformidade", required = false) String conformidade,
 
             @Parameter(description = "Filtro opcional por porto base ou terminal principal")
             @RequestParam(name = "porto", required = false) String porto,
@@ -61,7 +60,7 @@ public class VesselController {
             @Parameter(description = "Quantidade de navios por página")
             @RequestParam(name = "limit", defaultValue = "20") int limit
     ) {
-        return ResponseEntity.ok(vesselService.listVessels(nome, status, porto, conformidade, page, limit));
+        return ResponseEntity.ok(vesselService.listVessels(nome, status, porto, idPorto, conformidade, page, limit));
     }
 
     @GetMapping("/{id}")
