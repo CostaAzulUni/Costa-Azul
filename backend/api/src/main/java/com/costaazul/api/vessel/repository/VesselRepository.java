@@ -59,7 +59,11 @@ public interface VesselRepository extends JpaRepository<Vessel, UUID> {
             Pageable pageable
     );
 
-    @Query(value = "SELECT COUNT(*) FROM vessel.deck WHERE id_vessel = :idVessel", nativeQuery = true)
+    @Query(value = """
+        SELECT COUNT(*)
+        FROM vessel.deck
+        WHERE id_vessel = :idVessel
+""", nativeQuery = true)
     long countDecksByVesselId(@Param("idVessel") UUID idVessel);
 
     @Query(value = """
@@ -75,4 +79,7 @@ public interface VesselRepository extends JpaRepository<Vessel, UUID> {
         WHERE d.id_vessel = :idVessel
     """, nativeQuery = true)
     long countAreasByVesselId(@Param("idVessel") UUID idVessel);
+
+    @Query(value = "SELECT EXISTS(SELECT 1 FROM users.employee WHERE id_employee = :idEmployee)", nativeQuery = true)
+    boolean existsEmployeeById(@Param("idEmployee") UUID idEmployee);
 }

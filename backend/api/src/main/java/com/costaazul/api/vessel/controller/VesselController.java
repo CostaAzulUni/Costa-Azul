@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.UUID;
 
@@ -26,7 +27,7 @@ public class VesselController {
 
     @PostMapping
     @Operation(summary = "Cadastrar nova embarcação", description = "Regista um novo navio com todas as 5 secções técnicas e metadados de documentação.")
-    public ResponseEntity<VesselResponseDTO> createVessel(@RequestBody VesselRequestDTO requestDTO) {
+    public ResponseEntity<VesselResponseDTO> createVessel(@Valid @RequestBody VesselRequestDTO requestDTO) {
         VesselResponseDTO response = vesselService.createVessel(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -74,20 +75,17 @@ public class VesselController {
 
     @PutMapping("/{id}")
     @Operation(
-            summary = "Editar embarcação (Completa ou por Seção)",
-            description = "Atualiza os dados de uma embarcação existente. Campos não enviados (null) permanecem com seus valores atuais."
+            summary = "Editar embarcação completa", description = "Atualiza todos os dados de uma embarcação existente validando os campos obrigatórios."
     )
     public ResponseEntity<VesselResponseDTO> updateVessel(
-            @PathVariable("id") UUID id,
-            @RequestBody VesselRequestDTO requestDTO
+            @PathVariable("id") UUID id, @Valid @RequestBody VesselRequestDTO requestDTO
     ) {
         return ResponseEntity.ok(vesselService.updateVessel(id, requestDTO));
     }
 
     @PatchMapping("/{id}")
     @Operation(
-            summary = "Editar seção específica da embarcação (Parcial)",
-            description = "Permite atualizar apenas um card ou campo isolado (ex: Base operacional & gestão) sem precisar enviar o restante dos dados."
+            summary = "Editar seção específica da embarcação (Parcial)", description = "Permite atualizar apenas um card ou campo isolado (ex: Base operacional & gestão) sem precisar enviar o restante dos dados."
     )
     public ResponseEntity<VesselResponseDTO> patchVessel(
             @PathVariable("id") UUID id,

@@ -1,6 +1,7 @@
-
 package com.costaazul.api.vessel.service;
 
+import com.costaazul.api.exception.BusinessConflictException;
+import com.costaazul.api.exception.ResourceNotFoundException;
 import com.costaazul.api.vessel.domain.Company;
 import com.costaazul.api.vessel.domain.Vessel;
 import com.costaazul.api.vessel.domain.VesselDocument;
@@ -43,20 +44,26 @@ public class VesselService {
     @Transactional
     public VesselResponseDTO createVessel(VesselRequestDTO dto) {
         if (vesselRepository.existsByImoNumber(dto.imoNumber())) {
-            throw new IllegalArgumentException(
+            throw new BusinessConflictException(
                     "Já existe uma embarcação cadastrada com este número IMO."
             );
         }
 
         if (vesselRepository.existsByNationalRegistrationNumber(dto.nationalRegistrationNumber())) {
-            throw new IllegalArgumentException(
+            throw new BusinessConflictException(
                     "Já existe uma embarcação com este Número de Registro Nacional."
+            );
+        }
+
+        if (dto.idManager() != null && !vesselRepository.existsEmployeeById(dto.idManager())) {
+            throw new ResourceNotFoundException(
+                    "Gerente responsável (idManager) não encontrado na base de funcionários."
             );
         }
 
         Company company = (dto.idCompany() != null)
                 ? companyRepository.findById(dto.idCompany())
-                .orElseThrow(() -> new IllegalArgumentException("Empresa responsável não encontrada."))
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa responsável não encontrada."))
                 : companyRepository.findByCompanyName("Costa Azul Cruzeiros")
                 .orElseGet(() -> {
                     Company defaultCompany = new Company();
@@ -88,7 +95,7 @@ public class VesselService {
         vessel.setIsmCertification(dto.ismCertification());
         vessel.setCertificateExpiryDate(dto.certificateExpiryDate());
         vessel.setOperationalStatus(
-                dto.operationalStatus() != null ? dto.operationalStatus() : "ACTIVE"
+                dto.operationalStatus() != null ? dto.operationalStatus().toUpperCase() : "ACTIVE"
         );
         vessel.setIdHomePort(dto.idHomePort());
         vessel.setMainTerminal(dto.mainTerminal());
@@ -113,7 +120,7 @@ public class VesselService {
         return getVesselById(savedVessel.getIdVessel());
     }
 
-    // LISTAGEM PAGINADA COM FILTROS
+    // LISTAGEM PAGINADA COM FILTROS (Mantida com a estrutura da equipe)
     @Transactional(readOnly = true)
     public PagedVesselResponseDTO listVessels(
             String nome,
@@ -199,7 +206,7 @@ public class VesselService {
     @Transactional(readOnly = true)
     public VesselResponseDTO getVesselById(UUID idVessel) {
         Vessel v = vesselRepository.findWithCompanyByIdVessel(idVessel)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Embarcação não encontrada com o ID: " + idVessel
                 ));
 
@@ -263,14 +270,14 @@ public class VesselService {
     @Transactional
     public VesselResponseDTO updateVessel(UUID idVessel, VesselRequestDTO dto) {
         Vessel vessel = vesselRepository.findWithCompanyByIdVessel(idVessel)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Embarcação não encontrada com o ID: " + idVessel
                 ));
 
         // Valida o novo IMO
         if (dto.imoNumber() != null && !dto.imoNumber().isBlank()) {
             if (vesselRepository.existsByImoNumberAndIdVesselNot(dto.imoNumber(), idVessel)) {
-                throw new IllegalArgumentException(
+                throw new BusinessConflictException(
                         "Já existe outra embarcação cadastrada com este número IMO."
                 );
             }
@@ -283,16 +290,26 @@ public class VesselService {
             if (vesselRepository.existsByNationalRegistrationNumberAndIdVesselNot(
                     dto.nationalRegistrationNumber(), idVessel
             )) {
-                throw new IllegalArgumentException(
+                throw new BusinessConflictException(
                         "Já existe outra embarcação com este Número de Registro Nacional."
                 );
             }
             vessel.setNationalRegistrationNumber(dto.nationalRegistrationNumber());
         }
 
+        // Valida se o idManager existe na tabela users.employee
+        if (dto.idManager() != null) {
+            if (!vesselRepository.existsEmployeeById(dto.idManager())) {
+                throw new ResourceNotFoundException(
+                        "Gerente responsável (idManager) não encontrado na base de funcionários."
+                );
+            }
+            vessel.setIdManager(dto.idManager());
+        }
+
         if (dto.idCompany() != null) {
             Company company = companyRepository.findById(dto.idCompany())
-                    .orElseThrow(() -> new IllegalArgumentException(
+                    .orElseThrow(() -> new ResourceNotFoundException(
                             "Empresa responsável não encontrada."
                     ));
             vessel.setCompany(company);
@@ -330,7 +347,6 @@ public class VesselService {
         // Base Operacional e Gestão
         if (dto.idHomePort() != null) vessel.setIdHomePort(dto.idHomePort());
         if (dto.mainTerminal() != null) vessel.setMainTerminal(dto.mainTerminal());
-        if (dto.idManager() != null) vessel.setIdManager(dto.idManager());
         if (dto.operationalEmail() != null) vessel.setOperationalEmail(dto.operationalEmail());
 
         Vessel updatedVessel = vesselRepository.save(vessel);
@@ -393,7 +409,7 @@ public class VesselService {
     @Transactional
     public void deleteVessel(UUID idVessel, String confirmacao) {
         Vessel vessel = vesselRepository.findById(idVessel)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Embarcação não encontrada com o ID: " + idVessel
                 ));
 
