@@ -1,10 +1,6 @@
 import type { ChangeEvent } from "react";
 import { Alert, Input, SectionCard } from "../../../../components";
-import type {
-  VesselFieldErrors,
-  VesselFieldKey,
-  VesselFormData,
-} from "../vesselFormConfig";
+import { type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
 
 export interface VesselCapacityProps {
   formData: VesselFormData;

@@ -4,14 +4,8 @@ import type {
   VesselResponseDTO,
   VesselSummaryDTO,
 } from "../../../services/vesselcreate";
-import {
-  CLASSIFICATION_SOCIETY_OPTIONS,
-  formatIsoDateBr,
-  formatMetric,
-  getOptionLabel,
-  PROPULSION_TYPE_OPTIONS,
-  VESSEL_FLAG_OPTIONS,
-} from "./vesselFormConfig";
+import { CLASSIFICATION_SOCIETY_OPTIONS, formatIsoDateBr, formatMetric, getOptionLabel, PROPULSION_TYPE_OPTIONS, VESSEL_FLAG_OPTIONS } from "./form";
+
 
 export type VesselStatusFilterValue =
   | "ALL"

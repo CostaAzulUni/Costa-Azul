@@ -1,16 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {
-  Alert,
-  Badge,
-  Breadcrumb,
-  Button,
-  Toast,
-  WizardStepper,
-  type ToastVariant,
-  type WizardStep,
-} from "../../../../components";
+import { Alert, Badge, Breadcrumb, Button, Toast, WizardStepper, type ToastVariant, type WizardStep } from "../../../../components";
 import "./VesselCreate.css";
 import { VesselBasicInfo } from "../componets/VesselBasicInfo";
 import { VesselTechnicalInfo } from "../componets/VesselTechnicalInfo";
@@ -20,26 +11,8 @@ import { VesselOperational } from "../componets/VesselOperational";
 import { VesselDocuments } from "../componets/VesselDocumets";
 import { VesselReviewStep } from "../componets/VesselReviewStep";
 import { VesselSummarySidebar } from "../componets/VesselSummarySidebar";
-import {
-  INITIAL_VESSEL_FORM_DATA,
-  NEXT_STEP_BUTTON_LABELS,
-  OPERATIONAL_STATUS_OPTIONS,
-  VESSEL_FLAG_OPTIONS,
-  VESSEL_WIZARD_STEPS,
-  areAllVesselStepsValid,
-  getOptionLabel,
-  isVesselStepValid,
-  validateVesselStep,
-  type VesselFieldErrors,
-  type VesselFieldKey,
-  type VesselFormData,
-} from "../vesselFormConfig";
-import {
-  createVessel,
-  type DocumentDTO,
-  type VesselRequestDTO,
-  type VesselResponseDTO,
-} from "../../../../services/vesselcreate";
+import { getOptionLabel, areAllVesselStepsValid, isVesselStepValid, validateVesselStep, VESSEL_WIZARD_STEPS, INITIAL_VESSEL_FORM_DATA, OPERATIONAL_STATUS_OPTIONS, VESSEL_FLAG_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData, NEXT_STEP_BUTTON_LABELS } from "../form";
+import { createVessel, type DocumentDTO, type VesselRequestDTO, type VesselResponseDTO } from "../../../../services/vesselcreate";
 
 interface ToastFeedback {
   variant: ToastVariant;
@@ -52,31 +25,29 @@ interface ApiErrorFeedback {
   description: string;
 }
 
-export function VesselCreate() {
-  const navigate = useNavigate();
+// começo da pagina de criação da embarcação:
 
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<VesselFormData>(
-    INITIAL_VESSEL_FORM_DATA
-  );
-  const [errors, setErrors] = useState<VesselFieldErrors>({});
+export function VesselCreate() {
+  const navigate = useNavigate(); // navegação 
+
+
+  const [currentStep, setCurrentStep] = useState(0); // Estado para controlar a etapa atual do wizard
+  const [formData, setFormData] = useState<VesselFormData>( INITIAL_VESSEL_FORM_DATA); // Estado para armazenar os dados do formulário ela começa com os dados iniciais definidos em INITIAL_VESSEL_FORM_DATA
+  const [errors, setErrors] = useState<VesselFieldErrors>({}); // estado para armazenar os erros de validação dos campos do formulário
 
   // Estado elevado de mídia e anexos para não perder dados ao trocar de etapa
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [documents, setDocuments] = useState<File[]>([]);
+  const [photoFile, setPhotoFile] = useState<File | null>(null); // Estado para armazenar o arquivo de foto selecionado
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null); // Estado para armazenar a URL de visualização da foto selecionada
+  const [documents, setDocuments] = useState<File[]>([]); // Estado para armazenar os arquivos de documentos selecionados
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [toastFeedback, setToastFeedback] = useState<ToastFeedback | null>(
-    null
-  );
-  const [apiError, setApiError] = useState<ApiErrorFeedback | null>(null);
-  const [createdVessel, setCreatedVessel] =
-    useState<VesselResponseDTO | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false); // estado para controlar se o formulário está sendo enviado (submetido) para evitar envios duplicados
+  const [toastFeedback, setToastFeedback] = useState<ToastFeedback | null>(null); // estado para armazenar o feedback do Toast (notificação) que será exibido ao usuário
+  const [apiError, setApiError] = useState<ApiErrorFeedback | null>(null); // estado para armazenar o feedback de erro da API que será exibido ao usuário
+  const [createdVessel, setCreatedVessel] = useState<VesselResponseDTO | null>(null); // estado para armazenar os dados da embarcação criada após o envio bem-sucedido do formulário
 
   const totalSteps = VESSEL_WIZARD_STEPS.length;
 
-  const handleFieldChange = <K extends VesselFieldKey>(
+  const handleFieldChange = <K extends VesselFieldKey>( 
     field: K,
     value: VesselFormData[K]
   ) => {

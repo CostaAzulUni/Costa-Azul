@@ -1,12 +1,5 @@
 import { Alert, Input, SectionCard, Select } from "../../../../components";
-import {
-  CLASSIFICATION_SOCIETY_OPTIONS,
-  OPERATIONAL_STATUS_OPTIONS,
-  type VesselFieldErrors,
-  type VesselFieldKey,
-  type VesselFormData,
-} from "../vesselFormConfig";
-
+import { CLASSIFICATION_SOCIETY_OPTIONS, OPERATIONAL_STATUS_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
 export interface VesselCertificationProps {
   formData: VesselFormData;
   errors: VesselFieldErrors;

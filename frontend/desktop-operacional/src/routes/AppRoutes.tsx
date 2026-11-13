@@ -1,7 +1,7 @@
 
 import { Navigate, Route, Routes } from "react-router-dom";
 
-import { Dashboard } from "../features/company/dashboard/Dashboard";
+import { Dashboard} from "../features/company/dashboard/Dashboard";
 import { Vessel } from "../features/company/vessel/pages/Vessel";
 import { VesselCreate } from "../features/company/vessel/pages/VesselCreate";
 import { VesselDetails } from "../features/company/vessel/pages/VesselDetails";
@@ -28,12 +28,13 @@ import {
 } from "../features/login/pages/StatusPages";
 
 import { RequireAuth } from "./RequireAuth";
-import { AUTH_PATHS, HOME_PATH } from "./paths";
+import { AUTH_PATHS } from "./paths";
+
 
 export function AppRoutes() {
     return (
         <Routes>
-            <Route path="/dev" element={<Navigate to={HOME_PATH} replace />} />
+            
             <Route path="/" element={<Navigate to={AUTH_PATHS.login} replace />} />
 
             {/* Autenticação */}

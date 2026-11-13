@@ -11,6 +11,9 @@ import { AUTH_PATHS } from "./paths";
  */
 export function RequireAuth() {
   const location = useLocation();
+
+ 
+
   const from = `${location.pathname}${location.search}`;
   const token = getToken();
 

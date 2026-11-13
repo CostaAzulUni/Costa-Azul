@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {Alert,Badge,Breadcrumb,Button,DataTable,EmptyState,FilterChip,IconButton,Input,KPI,Pagination,Select,VesselCard,type DataTableColumn} from "../../../../components";
 import {listVessels,type PagedVesselResponseDTO,type VesselSummaryDTO} from "../../../../services/vesselcreate";
-import { formatMetric } from "../vesselFormConfig";
+
 import { calculateFleetKpis, evaluateVesselCompliance, extractBasePortOptions, getVesselBasePortDisplay, getVesselStatusDisplay, parseVesselApiError, resolveSafeVesselPhotoUrl, VESSEL_COMPLIANCE_FILTER_OPTIONS, VESSEL_STATUS_FILTER_OPTIONS, type VesselComplianceFilterValue, type VesselStatusFilterValue } from "../vesselListingUtils";
 import "./Vessel.css";
+import { formatMetric } from "../form";
 
 type FleetViewMode = "grid" | "list"; // Tipo de visualização da frota: grade ou lista
 

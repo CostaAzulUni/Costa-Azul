@@ -1,9 +1,5 @@
-import {
-  VESSEL_FLAG_OPTIONS,
-  getCompletedVesselStepsCount,
-  getOptionLabel,
-  type VesselFormData,
-} from "../vesselFormConfig";
+import { getCompletedVesselStepsCount, getOptionLabel, VESSEL_FLAG_OPTIONS, type VesselFormData } from "../form";
+
 
 export interface VesselSummarySidebarProps {
   formData: VesselFormData;

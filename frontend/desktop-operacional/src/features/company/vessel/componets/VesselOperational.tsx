@@ -1,9 +1,5 @@
 import { Input, SectionCard } from "../../../../components";
-import type {
-  VesselFieldErrors,
-  VesselFieldKey,
-  VesselFormData,
-} from "../vesselFormConfig";
+import { type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
 
 export interface VesselOperationalProps {
   formData: VesselFormData;

@@ -27,18 +27,7 @@ import {
   type VesselRequestDTO,
   type VesselResponseDTO,
 } from "../../../../services/vesselcreate";
-import {
-  CLASSIFICATION_SOCIETY_OPTIONS,
-  INITIAL_VESSEL_FORM_DATA,
-  OPERATIONAL_STATUS_OPTIONS,
-  PROPULSION_TYPE_OPTIONS,
-  VESSEL_FLAG_OPTIONS,
-  formatMetric,
-  validateVesselStep,
-  type VesselFieldErrors,
-  type VesselFieldKey,
-  type VesselFormData,
-} from "../vesselFormConfig";
+
 import {
   evaluateVesselCompliance,
   evaluateVesselProfileReadiness,
@@ -52,6 +41,7 @@ import {
   resolveSafeVesselPhotoUrl,
 } from "../vesselListingUtils";
 import "./VesselDetails.css";
+import { CLASSIFICATION_SOCIETY_OPTIONS, formatMetric, INITIAL_VESSEL_FORM_DATA, OPERATIONAL_STATUS_OPTIONS, PROPULSION_TYPE_OPTIONS, validateVesselStep, VESSEL_FLAG_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
 
 interface VesselLocationState {
   vessel?: VesselResponseDTO;

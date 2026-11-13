@@ -1,16 +1,5 @@
 import { Alert, Button, SectionCard } from "../../../../components";
-import {
-  CLASSIFICATION_SOCIETY_OPTIONS,
-  OPERATIONAL_STATUS_OPTIONS,
-  PROPULSION_TYPE_OPTIONS,
-  VESSEL_FLAG_OPTIONS,
-  VESSEL_WIZARD_STEPS,
-  formatIsoDateBr,
-  formatMetric,
-  getOptionLabel,
-  isVesselStepValid,
-  type VesselFormData,
-} from "../vesselFormConfig";
+import { CLASSIFICATION_SOCIETY_OPTIONS, formatIsoDateBr, formatMetric, getOptionLabel, isVesselStepValid, OPERATIONAL_STATUS_OPTIONS, PROPULSION_TYPE_OPTIONS, VESSEL_FLAG_OPTIONS, VESSEL_WIZARD_STEPS, type VesselFormData } from "../form";
 
 export interface VesselReviewStepProps {
   formData: VesselFormData;
