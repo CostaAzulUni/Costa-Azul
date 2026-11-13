@@ -7,6 +7,7 @@
 export const TOKEN_KEY = "@costaazul-token";
 export const ROLE_KEY = "@costaazul-role";
 
+
 /**
  * Perfis com acesso ao ERP operacional.
  * Espelha a regra do backend (SecurityConfig): /api/erp/** exige ROLE_SUPER_ADMIN ou ROLE_ADMIN_COMPANHIA.
@@ -22,6 +23,7 @@ export interface SessionTokenPayload {
   iat?: number;
 }
 
+
 function readStorage(key: string): string | null {
   try {
     return localStorage.getItem(key);
@@ -29,6 +31,8 @@ function readStorage(key: string): string | null {
     return null;
   }
 }
+
+
 
 /** Decodifica o payload do JWT (sem validar assinatura — isso é papel do backend). */
 export function decodeToken(token: string): SessionTokenPayload | null {

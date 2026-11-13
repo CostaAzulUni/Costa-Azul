@@ -28,20 +28,10 @@ import {
   type VesselResponseDTO,
 } from "../../../../services/vesselcreate";
 
-import {
-  evaluateVesselCompliance,
-  evaluateVesselProfileReadiness,
-  formatClassificationDisplay,
-  formatDateTimeBr,
-  formatFlagDisplay,
-  formatPropulsionDisplay,
-  getVesselBasePortDisplay,
-  getVesselStatusDisplay,
-  parseVesselApiError,
-  resolveSafeVesselPhotoUrl,
-} from "../vesselListingUtils";
+
 import "./VesselDetails.css";
 import { CLASSIFICATION_SOCIETY_OPTIONS, formatMetric, INITIAL_VESSEL_FORM_DATA, OPERATIONAL_STATUS_OPTIONS, PROPULSION_TYPE_OPTIONS, validateVesselStep, VESSEL_FLAG_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
+import { evaluateVesselCompliance, evaluateVesselProfileReadiness, formatClassificationDisplay, formatDateTimeBr, formatFlagDisplay, formatPropulsionDisplay, getVesselBasePortDisplay, getVesselStatusDisplay, parseVesselApiError, resolveSafeVesselPhotoUrl } from "../utils";
 
 interface VesselLocationState {
   vessel?: VesselResponseDTO;

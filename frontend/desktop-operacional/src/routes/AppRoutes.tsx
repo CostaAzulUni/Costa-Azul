@@ -29,6 +29,7 @@ import {
 
 import { RequireAuth } from "./RequireAuth";
 import { AUTH_PATHS } from "./paths";
+import { DevLogin } from "../dev/DevLogin";
 
 
 export function AppRoutes() {
@@ -36,6 +37,9 @@ export function AppRoutes() {
         <Routes>
             
             <Route path="/" element={<Navigate to={AUTH_PATHS.login} replace />} />
+            {import.meta.env.DEV && (
+                <Route path="/dev" element={<DevLogin />} />
+            )}
 
             {/* Autenticação */}
             <Route element={<AuthLayout />}>
