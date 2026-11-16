@@ -1,0 +1,76 @@
+.dev-login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: #f4f6f9;
+  color: #202938;
+}
+
+.dev-login header {
+  width: 100%;
+  max-width: 640px;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.dev-login header h1 {
+  margin-bottom: 8px;
+  font-size: 28px;
+}
+
+.dev-login header p {
+  color: #667085;
+}
+
+.dev-login__profiles {
+  display: grid;
+  width: 100%;
+  max-width: 640px;
+  gap: 16px;
+}
+
+.dev-login__profile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px;
+  border: 1px solid #e0e5ec;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.dev-login__profile h2 {
+  margin: 0 0 6px;
+  font-size: 17px;
+}
+
+.dev-login__profile p {
+  margin: 0;
+  color: #667085;
+  font-size: 14px;
+}
+
+.dev-login__profile button {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #173b68;
+  color: white;
+  cursor: pointer;
+}
+
+.dev-login__profile button:hover {
+  background: #24538a;
+}
+
+@media (max-width: 540px) {
+  .dev-login__profile {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

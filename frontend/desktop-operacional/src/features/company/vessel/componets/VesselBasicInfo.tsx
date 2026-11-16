@@ -1,11 +1,6 @@
 import { useRef, type ChangeEvent } from "react";
 import { Button, Input, SectionCard, Select } from "../../../../components";
-import {
-  VESSEL_FLAG_OPTIONS,
-  type VesselFieldErrors,
-  type VesselFieldKey,
-  type VesselFormData,
-} from "../vesselFormConfig";
+import { VESSEL_FLAG_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
 
 export interface VesselBasicInfoProps {
   formData: VesselFormData;

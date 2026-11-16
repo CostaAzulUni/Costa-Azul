@@ -1,11 +1,6 @@
 import type { ChangeEvent } from "react";
 import { Input, SectionCard, Select } from "../../../../components";
-import {
-  PROPULSION_TYPE_OPTIONS,
-  type VesselFieldErrors,
-  type VesselFieldKey,
-  type VesselFormData,
-} from "../vesselFormConfig";
+import { PROPULSION_TYPE_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
 
 export interface VesselTechnicalInfoProps {
   formData: VesselFormData;
