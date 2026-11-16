@@ -33,9 +33,11 @@ export function getVesselApiError(error: unknown): ApiErrorFeedback {
 
     const safeBackendMessage =
       rawBackendMessage &&
+      rawBackendMessage.trim() !== "" &&
       rawBackendMessage !== "Internal Server Error" &&
       rawBackendMessage !== "Bad Request" &&
-      rawBackendMessage !== "Forbidden"
+      rawBackendMessage !== "Forbidden" &&
+      rawBackendMessage !== "Not Found"
         ? rawBackendMessage
         : undefined;
 
@@ -57,6 +59,7 @@ export function getVesselApiError(error: unknown): ApiErrorFeedback {
         "Seu perfil não possui permissão para cadastrar embarcações (HTTP 403). É necessário acesso de Administrador da Companhia ou Super Admin.";
     } else if (status === 404) {
       description =
+        safeBackendMessage ||
         "O endpoint de cadastro (/api/erp/vessels) não foi encontrado no servidor (HTTP 404).";
     } else if (status && status >= 500) {
       description =
