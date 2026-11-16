@@ -37,6 +37,7 @@ export function AppRoutes() {
         <Routes>
             
             <Route path="/" element={<Navigate to={AUTH_PATHS.login} replace />} />
+            
             {import.meta.env.DEV && (
                 <Route path="/dev" element={<DevLogin />} />
             )}

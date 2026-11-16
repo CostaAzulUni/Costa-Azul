@@ -93,14 +93,6 @@ export interface StatutoryCertificateRow {
 export type CertificateFilterType = "ALL" | "ALERT" | "VALID";
 export type TripFilterType = "ALL" | "SCHEDULED" | "COMPLETED";
 
-export interface PrototypeSectionSummary {
-  code: string;
-  tabId: string;
-  title: string;
-  description: string;
-  badgeText: string;
-}
-
 export interface VesselDerivedMetrics {
   loaBeamRatio: string;
   gtPerPassenger: string;

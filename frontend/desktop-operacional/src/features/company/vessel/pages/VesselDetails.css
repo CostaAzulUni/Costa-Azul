@@ -413,107 +413,6 @@
   color: var(--color-gray-700);
 }
 
-/* Card de Índice Rápido das 8 Seções (Figma E · 00 #5932:33232) */
-.vessel-details-index-card {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-outline-variant);
-  border-radius: var(--radius-md);
-  padding: var(--space-6);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  box-shadow: var(--shadow-elev-1);
-}
-
-.vessel-details-index-card__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
-.vessel-details-index-card__eyebrow {
-  display: block;
-  font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--color-primary-600);
-  margin-bottom: 4px;
-}
-
-.vessel-details-index-card__title {
-  margin: 0;
-  font-family: var(--font-heading);
-  font-size: var(--text-h3);
-  line-height: var(--leading-h3);
-  font-weight: var(--font-weight-h3);
-  color: var(--color-gray-900);
-}
-
-.vessel-details-index-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-
-.vessel-details-index-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  padding: var(--space-4);
-  border: 1px solid var(--color-outline-variant);
-  border-radius: var(--radius-md);
-  background-color: var(--color-white);
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease,
-    background-color 0.15s ease;
-}
-
-.vessel-details-index-item:hover {
-  border-color: var(--color-primary-400);
-  box-shadow: var(--shadow-elev-1);
-}
-
-.vessel-details-index-item--active {
-  border-color: var(--color-primary-500);
-  background-color: var(--color-primary-50);
-}
-
-.vessel-details-index-item__top {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-}
-
-.vessel-details-index-item__num {
-  font-family: var(--font-sans);
-  font-size: var(--text-caption);
-  font-weight: 700;
-  color: var(--color-primary-600);
-  background-color: var(--color-primary-50);
-  padding: 2px 8px;
-  border-radius: var(--radius-pill);
-}
-
-.vessel-details-index-item__title {
-  font-family: var(--font-heading);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--color-gray-900);
-}
-
-.vessel-details-index-item__desc {
-  font-family: var(--font-sans);
-  font-size: var(--text-caption);
-  line-height: var(--leading-caption);
-  color: var(--color-gray-600);
-}
-
 /* Estados de Carregamento e Erro */
 .vessel-details-state-box {
   width: 100%;
@@ -794,10 +693,6 @@
   .vessel-details-kpis-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .vessel-details-index-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 768px) {
@@ -817,10 +712,6 @@
   }
 
   .vessel-details-kpis-row {
-    grid-template-columns: 1fr;
-  }
-
-  .vessel-details-index-grid {
     grid-template-columns: 1fr;
   }
 

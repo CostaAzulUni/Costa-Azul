@@ -9,11 +9,10 @@ import { VesselDecksAreasTab, VesselDocumentsDetailTab, VesselHistoryTab, Vessel
 import { VesselDeleteModal } from "../componets/VesselDeleteModal";
 import { VesselDetailsActionBar } from "../componets/VesselDetailsActionBar";
 import { VesselOverviewTab } from "../componets/VesselOverviewTab";
-import { VesselSectionIndex } from "../componets/VesselSectionIndex";
 import { VesselSpecificationsTab } from "../componets/VesselSpecificationsTab";
 import { formatMetric, INITIAL_VESSEL_FORM_DATA, mapVesselToFormData, validateAllVesselSteps, VESSEL_STEP_TO_DETAIL_TAB, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
 import { buildVesselUpdatePayload } from "../services/vesselPayload";
-import { buildStatutoryCertificateRows, buildVesselDetailTabs, buildVesselSectionSummaries, calculateVesselDerivedMetrics, evaluateVesselCompliance, evaluateVesselProfileReadiness, filterStatutoryCertificateRows, formatFlagDisplay, getVesselBasePortDisplay, getVesselStatusDisplay, parseVesselApiError, resolveSafeVesselPhotoUrl, type CertificateFilterType, type TripFilterType, type VesselLocationState } from "../utils";
+import { buildStatutoryCertificateRows, buildVesselDetailTabs, calculateVesselDerivedMetrics, evaluateVesselCompliance, evaluateVesselProfileReadiness, filterStatutoryCertificateRows, formatFlagDisplay, getVesselBasePortDisplay, getVesselStatusDisplay, parseVesselApiError, resolveSafeVesselPhotoUrl, type CertificateFilterType, type TripFilterType, type VesselLocationState } from "../utils";
 
 export function VesselDetails() {
   const { id } = useParams<{ id: string }>();
@@ -49,7 +48,6 @@ export function VesselDetails() {
   }, [routeState?.vessel, fetchedVessel, id]);
 
   const [activeTab, setActiveTab] = useState<string>("visao-geral");
-  const [showSectionIndex, setShowSectionIndex] = useState<boolean>(false);
   const [certificateFilter, setCertificateFilter] =
     useState<CertificateFilterType>("ALL");
   const [tripFilter, setTripFilter] = useState<TripFilterType>("ALL");
@@ -128,12 +126,6 @@ export function VesselDetails() {
   const detailTabs = useMemo(
     () => buildVesselDetailTabs(vessel, compliance),
     [vessel, compliance]
-  );
-
-  // Índice rápido das 8 seções (Figma E · 00 #5932:33232)
-  const sectionSummaries = useMemo(
-    () => buildVesselSectionSummaries(vessel, statusDisplay, compliance),
-    [vessel, statusDisplay, compliance]
   );
 
   // Linha real de certificado ISM para a tabela da Aba 05 (E · 05)
@@ -385,10 +377,10 @@ export function VesselDetails() {
               type="button"
               variant="ghost"
               size="md"
-              icon="pi-th-large"
-              onClick={() => setShowSectionIndex((prev) => !prev)}
+              icon="pi-arrow-left"
+              onClick={() => navigate("/vessel")}
             >
-              {showSectionIndex ? "Ocultar índice" : "Índice das abas"}
+              Voltar
             </Button>
             {!isEditing && (
               <>
@@ -428,20 +420,6 @@ export function VesselDetails() {
       />
 
       <div className="vessel-details-body">
-        {/* Painel E · 00 · Índice das 8 seções da ficha (Figma #5932:33232) */}
-        {showSectionIndex && (
-          <VesselSectionIndex
-            vesselName={vessel.vesselName}
-            sectionSummaries={sectionSummaries}
-            activeTab={activeTab}
-            onSelectTab={(tabId) => {
-              setActiveTab(tabId);
-              setShowSectionIndex(false);
-            }}
-            onClose={() => setShowSectionIndex(false)}
-          />
-        )}
-
         {/* ABA 01 · VISÃO GERAL (Figma E · 01 #5932:33339) */}
         {activeTab === "visao-geral" && (
           <TabPanel idPrefix={tabsIdPrefix} tabId="visao-geral">

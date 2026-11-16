@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import type { AuthLocationState } from "../features/login/utils/authState";
-import { getToken, hasErpAccess, isTokenExpired } from "../services/session";
+import { endSession, getToken, hasErpAccess, isTokenExpired } from "../services/session";
 import { AUTH_PATHS } from "./paths";
 
 /**
@@ -24,6 +24,7 @@ export function RequireAuth() {
   }
 
   if (isTokenExpired(token)) {
+    endSession();
     return (
       <Navigate
         to={AUTH_PATHS.sessionExpired}

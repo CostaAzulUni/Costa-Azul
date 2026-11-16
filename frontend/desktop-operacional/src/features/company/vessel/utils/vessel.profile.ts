@@ -2,19 +2,14 @@ import type { TabItem } from "../../../../components";
 import type { VesselResponseDTO } from "../../../../services/vesselcreate";
 import { formatMetric } from "../form";
 import { evaluateVesselCompliance } from "./vessel.compliance";
-import {
-  formatClassificationDisplay,
-  formatDateTimeBr,
-} from "./vessel.formatters";
+import { formatClassificationDisplay } from "./vessel.formatters";
 import type {
   CertificateFilterType,
-  PrototypeSectionSummary,
   StatutoryCertificateRow,
   VesselComplianceEvaluation,
   VesselDerivedMetrics,
   VesselProfileReadiness,
   VesselProfileReadinessItem,
-  VesselStatusDisplay,
 } from "./vessel.type";
 
 /**
@@ -149,83 +144,6 @@ export function buildVesselDetailTabs(
     { id: "documentos", label: "Documentos" },
     { id: "viagens", label: "Viagens" },
     { id: "historico", label: "Histórico" },
-  ];
-}
-
-/**
- * Monta o índice rápido das 8 seções da ficha (Figma E · 00 #5932:33232).
- */
-export function buildVesselSectionSummaries(
-  vessel: VesselResponseDTO | null,
-  statusDisplay: VesselStatusDisplay,
-  compliance: VesselComplianceEvaluation
-): PrototypeSectionSummary[] {
-  if (!vessel) return [];
-  return [
-    {
-      code: "01",
-      tabId: "visao-geral",
-      title: "Visão geral",
-      description:
-        "Identificação oficial, base operacional, alertas de conformidade e prontidão do cadastro.",
-      badgeText: statusDisplay.label,
-    },
-    {
-      code: "02",
-      tabId: "especificacoes",
-      title: "Especificações",
-      description:
-        "Dimensões (LOA, boca, calado), tonelagem (GT, DWT), construção, propulsão e relações de projeto.",
-      badgeText: formatMetric(vessel.grossTonnage, "GT", 0),
-    },
-    {
-      code: "03",
-      tabId: "capacidade",
-      title: "Capacidade",
-      description:
-        "Lotação máxima de passageiros e tripulantes, total de cabines e cobertura SOLAS de salvatagem.",
-      badgeText: `${formatMetric(vessel.maxPassengerCapacity)} pass.`,
-    },
-    {
-      code: "04",
-      tabId: "conveses-areas",
-      title: "Conveses & áreas",
-      description:
-        "Estrutura de conveses, cabines e áreas comuns/serviço calculadas pelo sistema.",
-      badgeText: `${vessel.deckCount ?? 0} conveses`,
-    },
-    {
-      code: "05",
-      tabId: "certificacoes",
-      title: "Certificações",
-      description:
-        "Sociedade classificadora (IACS), certificado Código ISM e controle de validade.",
-      badgeText: compliance.shortLabel,
-    },
-    {
-      code: "06",
-      tabId: "documentos",
-      title: "Documentos",
-      description:
-        "Repositório de documentação técnica e plantas vinculadas à embarcação.",
-      badgeText: "Consulta",
-    },
-    {
-      code: "07",
-      tabId: "viagens",
-      title: "Viagens",
-      description:
-        "Programação de escalas, viagens em andamento e histórico de travessias.",
-      badgeText: "0 viagens",
-    },
-    {
-      code: "08",
-      tabId: "historico",
-      title: "Histórico",
-      description:
-        "Trilha de auditoria com data de cadastro e eventos registrados no sistema.",
-      badgeText: formatDateTimeBr(vessel.createdAt).split(",")[0] || "Ativo",
-    },
   ];
 }
 

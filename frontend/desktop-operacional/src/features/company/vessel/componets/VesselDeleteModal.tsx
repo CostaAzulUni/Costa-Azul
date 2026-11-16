@@ -50,8 +50,7 @@ export function VesselDeleteModal({
             icon="pi-trash"
             disabled={
               isDeleting ||
-              deleteConfirmation.trim().toLowerCase() !==
-                vessel.vesselName.trim().toLowerCase()
+              deleteConfirmation.trim() !== vessel.vesselName.trim()
             }
             onClick={onConfirmDelete}
             title="Digite o nome da embarcação para habilitar a remoção"

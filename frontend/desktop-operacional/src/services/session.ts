@@ -56,9 +56,14 @@ export function getToken(): string | null {
 }
 
 export function isTokenExpired(token: string): boolean {
-  const exp = decodeToken(token)?.exp;
-  if (typeof exp !== "number") return false;
-  return exp * 1000 <= Date.now();
+  const payload = decodeToken(token);
+
+  // Token inválido ou sem expiração: rejeitar.
+  if (!payload || typeof payload.exp !== "number") {
+    return true;
+  }
+
+  return payload.exp * 1000 <= Date.now();
 }
 
 /** Inicia a sessão a partir do token devolvido por POST /api/auth/login. */
