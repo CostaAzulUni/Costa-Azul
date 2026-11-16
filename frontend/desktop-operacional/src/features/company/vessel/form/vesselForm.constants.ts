@@ -86,14 +86,15 @@ export const PROPULSION_TYPE_OPTIONS: SelectOption[] = [
   { label: "Turbina a Gás", value: "GAS_TURBINE" },
 ];
 
-// opções de sociedade classificadora para o campo de seleção de sociedade classificadora da embarcação, incluindo diferentes organizações internacionais de classificação naval.
+// opções de sociedade classificadora para o campo de seleção de sociedade classificadora da embarcação, incluindo as membros oficiais da IACS previstas no manual técnico.
 export const CLASSIFICATION_SOCIETY_OPTIONS: SelectOption[] = [
   { label: "DNV (Det Norske Veritas)", value: "DNV" },
-  { label: "Lloyd's Register (LR)", value: "LR" },
-  { label: "Bureau Veritas (BV)", value: "BV" },
-  { label: "American Bureau of Shipping (ABS)", value: "ABS" },
-  { label: "RINA Services", value: "RINA" },
-  { label: "RBNA (Registro Brasileiro de Navios)", value: "RBNA" },
+  { label: "RINA (Registro Italiano Navale)", value: "RINA" },
+  { label: "LR (Lloyd's Register)", value: "LR" },
+  { label: "ABS (American Bureau of Shipping)", value: "ABS" },
+  { label: "BV (Bureau Veritas)", value: "BV" },
+  { label: "ClassNK (Nippon Kaiji Kyokai)", value: "ClassNK" },
+  { label: "CCS (China Classification Society)", value: "CCS" },
 ];
 
 

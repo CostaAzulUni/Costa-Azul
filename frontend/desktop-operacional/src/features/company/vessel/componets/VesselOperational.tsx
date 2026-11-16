@@ -20,34 +20,39 @@ export function VesselOperational({
       <div className="vessel-form-grid">
         <Input
           id="idHomePort"
-          label="Porto base (ID UUID)"
+          label="Porto base"
           size="lg"
+          disabled
+          readOnly
           value={formData.idHomePort}
           errorMessage={errors.idHomePort}
-          onChange={(e) => onFieldChange("idHomePort", e.target.value)}
-          placeholder="Opcional · aguarda listagem do módulo Portos"
-          helperText="Deixe em branco ou informe o UUID do porto cadastrado."
+          placeholder="Indisponível · aguarda módulo de Portos"
+          helperText="A seleção de porto base estará disponível posteriormente."
         />
 
         <Input
           id="mainTerminal"
           label="Terminal / berço principal"
           size="lg"
+          maxLength={100}
           value={formData.mainTerminal}
           errorMessage={errors.mainTerminal}
           onChange={(e) => onFieldChange("mainTerminal", e.target.value)}
-          placeholder="Ex.: Berço 02 · Cais Outeirinhos"
+          onBlur={(e) => onFieldChange("mainTerminal", e.target.value.trim().replace(/\s+/g, " "))}
+          placeholder="Ex.: Terminal Concais · Berço 3"
+          helperText="Opcional · até 100 caracteres."
         />
 
         <Input
           id="idManager"
-          label="Gerente da embarcação (ID UUID)"
+          label="Gerente da embarcação"
           size="lg"
+          disabled
+          readOnly
           value={formData.idManager}
           errorMessage={errors.idManager}
-          onChange={(e) => onFieldChange("idManager", e.target.value)}
-          placeholder="Opcional · aguarda listagem do módulo Pessoas"
-          helperText="Deixe em branco ou informe o UUID do funcionário responsável."
+          placeholder="Indisponível · aguarda módulo de Pessoas"
+          helperText="A seleção de gerente responsável estará disponível posteriormente."
         />
 
         <Input
@@ -56,6 +61,7 @@ export function VesselOperational({
           required
           size="lg"
           type="email"
+          maxLength={255}
           value={formData.operationalEmail}
           errorMessage={errors.operationalEmail}
           onChange={(e) => onFieldChange("operationalEmail", e.target.value)}

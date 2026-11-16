@@ -10,7 +10,7 @@ import { VesselOperational } from "../componets/VesselOperational";
 import { VesselDocuments } from "../componets/VesselDocumets";
 import { VesselReviewStep } from "../componets/VesselReviewStep";
 import { VesselSummarySidebar } from "../componets/VesselSummarySidebar";
-import { areAllVesselStepsValid, isVesselStepValid, validateVesselStep, VESSEL_WIZARD_STEPS, INITIAL_VESSEL_FORM_DATA,  type VesselFieldErrors, type VesselFieldKey, type VesselFormData, NEXT_STEP_BUTTON_LABELS } from "../form";
+import { areAllVesselStepsValid, isVesselStepValid, syncVesselErrors, validateAllVesselSteps, validateVesselStep, VESSEL_WIZARD_STEPS, INITIAL_VESSEL_FORM_DATA, type VesselFieldErrors, type VesselFieldKey, type VesselFormData, NEXT_STEP_BUTTON_LABELS } from "../form";
 import { createVessel, type VesselResponseDTO } from "../../../../services/vesselcreate";
 import { VesselCreateSuccess } from "./VesselCreateSucess";
 import { buildVesselPayload } from "../services/vesselPayload";
@@ -44,19 +44,15 @@ export function VesselCreate() {
 
   const totalSteps = VESSEL_WIZARD_STEPS.length;
 
-  const handleFieldChange = <K extends VesselFieldKey>( 
+  const handleFieldChange = <K extends VesselFieldKey>(
     field: K,
     value: VesselFormData[K]
   ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-
-    if (errors[field]) {
-      setErrors((prev) => {
-        const updated = { ...prev };
-        delete updated[field];
-        return updated;
-      });
-    }
+    setFormData((prev) => {
+      const nextData = { ...prev, [field]: value };
+      setErrors((prevErrors) => syncVesselErrors(prevErrors, nextData));
+      return nextData;
+    });
   };
 
   const handlePhotoChange = (file: File | null, preview: string | null) => {
@@ -64,7 +60,31 @@ export function VesselCreate() {
     setPhotoPreview(preview);
   };
 
+  const handleBackToList = () => {
+    const hasUnsaved =
+      photoFile !== null ||
+      documents.length > 0 ||
+      JSON.stringify(formData) !== JSON.stringify(INITIAL_VESSEL_FORM_DATA);
+    if (
+      hasUnsaved &&
+      !window.confirm("Existem alterações não salvas. Deseja realmente sair do cadastro?")
+    ) {
+      return;
+    }
+    navigate("/vessel");
+  };
+
   const handleNextStep = () => {
+    const stepErrors = validateVesselStep(currentStep, formData);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...stepErrors }));
+      setToastFeedback({
+        variant: "warning",
+        title: `Pendências na etapa "${VESSEL_WIZARD_STEPS[currentStep].title}"`,
+        description:
+          "Existem campos pendentes ou inválidos nesta etapa. Revise-os antes de concluir o cadastro.",
+      });
+    }
     setCurrentStep((prev) => Math.min(totalSteps - 1, prev + 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -97,18 +117,7 @@ export function VesselCreate() {
     setToastFeedback(null);
 
     // Valida todas as 5 etapas obrigatórias (0 a 4) antes de permitir o envio
-    let allErrors: VesselFieldErrors = {};
-    let firstInvalidStep: number | null = null;
-
-    for (let step = 0; step <= 4; step += 1) {
-      const stepValidationErrors = validateVesselStep(step, formData);
-      if (Object.keys(stepValidationErrors).length > 0) {
-        allErrors = { ...allErrors, ...stepValidationErrors };
-        if (firstInvalidStep === null) {
-          firstInvalidStep = step;
-        }
-      }
-    }
+    const { allErrors, firstInvalidStep } = validateAllVesselSteps(formData);
 
     if (firstInvalidStep !== null) {
       setErrors(allErrors);
@@ -215,6 +224,16 @@ export function VesselCreate() {
           <div className="vessel-header__draft-status">
             <i className="pi pi-info-circle" aria-hidden="true" />
             <span>Ainda não salvo</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="md"
+              icon="pi-arrow-left"
+              onClick={handleBackToList}
+              disabled={isSubmitting}
+            >
+              Voltar
+            </Button>
           </div>
         </header>
 

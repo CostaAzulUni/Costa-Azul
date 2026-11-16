@@ -1,26 +1,7 @@
-import {
-  Alert,
-  Badge,
-  Button,
-  Input,
-  SectionCard,
-  Select,
-} from "../../../../components";
+import { Alert, Badge, Button, Input, SectionCard, Select } from "../../../../components";
 import type { VesselResponseDTO } from "../../../../services/vesselcreate";
-import {
-  parseNullableNumber,
-  VESSEL_FLAG_OPTIONS,
-  type VesselFieldErrors,
-  type VesselFieldKey,
-  type VesselFormData,
-} from "../form";
-import {
-  formatClassificationDisplay,
-  formatDateTimeBr,
-  formatFlagDisplay,
-  type VesselComplianceEvaluation,
-  type VesselProfileReadiness,
-} from "../utils";
+import { parseNullableNumber, VESSEL_FLAG_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
+import { formatClassificationDisplay, formatDateTimeBr, formatFlagDisplay, type VesselComplianceEvaluation, type VesselProfileReadiness } from "../utils";
 
 export interface VesselOverviewTabProps {
   vessel: VesselResponseDTO;
@@ -108,6 +89,7 @@ export function VesselOverviewTab({
                   label="Número do registro nacional"
                   required
                   size="md"
+                  maxLength={30}
                   value={editFormData.nationalRegistrationNumber}
                   errorMessage={editErrors.nationalRegistrationNumber}
                   onChange={(e) =>
@@ -116,7 +98,7 @@ export function VesselOverviewTab({
                       e.target.value
                     )
                   }
-                  helperText="Registro na Capitania dos Portos / Tribunal Marítimo."
+                  helperText="Entre 5 e 30 caracteres (letras, números, ponto, hífen ou barra)."
                 />
                 <Input
                   id="edit-imoNumber"
@@ -133,7 +115,7 @@ export function VesselOverviewTab({
                       e.target.value.replace(/\D/g, "")
                     )
                   }
-                  helperText="Identificação única da IMO, 7 dígitos."
+                  helperText="Informe exatamente 7 dígitos numéricos (com dígito verificador IMO)."
                 />
                 <Select
                   id="edit-flag"
@@ -249,36 +231,41 @@ export function VesselOverviewTab({
               <div className="vessel-details-edit-grid">
                 <Input
                   id="edit-idHomePort"
-                  label="Porto base (UUID)"
+                  label="Porto base"
                   size="md"
+                  disabled
+                  readOnly
                   value={editFormData.idHomePort}
                   errorMessage={editErrors.idHomePort}
-                  onChange={(e) =>
-                    onEditFieldChange("idHomePort", e.target.value)
-                  }
-                  placeholder="Opcional · UUID do porto base"
+                  placeholder="Indisponível · aguarda módulo de Portos"
+                  helperText="A seleção de porto base estará disponível posteriormente."
                 />
                 <Input
                   id="edit-mainTerminal"
                   label="Terminal / berço principal"
                   size="md"
+                  maxLength={100}
                   value={editFormData.mainTerminal}
                   errorMessage={editErrors.mainTerminal}
                   onChange={(e) =>
                     onEditFieldChange("mainTerminal", e.target.value)
                   }
+                  onBlur={(e) =>
+                    onEditFieldChange("mainTerminal", e.target.value.trim().replace(/\s+/g, " "))
+                  }
                   placeholder="Ex.: Terminal Concais · Berço 3"
+                  helperText="Opcional · até 100 caracteres."
                 />
                 <Input
                   id="edit-idManager"
-                  label="Gerente da embarcação (UUID)"
+                  label="Gerente da embarcação"
                   size="md"
+                  disabled
+                  readOnly
                   value={editFormData.idManager}
                   errorMessage={editErrors.idManager}
-                  onChange={(e) =>
-                    onEditFieldChange("idManager", e.target.value)
-                  }
-                  placeholder="Opcional · UUID do gerente"
+                  placeholder="Indisponível · aguarda módulo de Pessoas"
+                  helperText="A seleção de gerente responsável estará disponível posteriormente."
                 />
                 <Input
                   id="edit-operationalEmail"
@@ -286,6 +273,7 @@ export function VesselOverviewTab({
                   required
                   size="md"
                   type="email"
+                  maxLength={255}
                   value={editFormData.operationalEmail}
                   errorMessage={editErrors.operationalEmail}
                   onChange={(e) =>

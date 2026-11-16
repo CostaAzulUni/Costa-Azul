@@ -1,10 +1,6 @@
 
-import type { VesselFormData } from "../form";
-import type {
-  DocumentDTO,
-  VesselRequestDTO,
-  VesselResponseDTO,
-} from "../../../../services/vesselcreate";
+import { isValidUuid, type VesselFormData } from "../form";
+import type { DocumentDTO, VesselRequestDTO, VesselResponseDTO } from "../../../../services/vesselcreate";
 
 export function buildVesselPayload(
   formData: VesselFormData,
@@ -34,17 +30,17 @@ export function buildVesselPayload(
     maxBeam: formData.maxBeam,
     operatingDraft: formData.operatingDraft,
     maxServiceSpeed: formData.maxServiceSpeed,
-    mainPropulsion: formData.mainPropulsion,
+    mainPropulsion: formData.mainPropulsion.trim(),
     maxPassengerCapacity: formData.maxPassengerCapacity,
     maxCrewCapacity: formData.maxCrewCapacity,
     lifeboatTotalCapacity: formData.lifeboatTotalCapacity,
-    classificationSociety: formData.classificationSociety,
+    classificationSociety: formData.classificationSociety.trim(),
     ismCertification: formData.ismCertification.trim(),
     certificateExpiryDate: formData.certificateExpiryDate || null,
     operationalStatus: formData.operationalStatus,
-    idHomePort: formData.idHomePort.trim() || null,
-    mainTerminal: formData.mainTerminal.trim(),
-    idManager: formData.idManager.trim() || null,
+    idHomePort: isValidUuid(formData.idHomePort) ? formData.idHomePort.trim() : null,
+    mainTerminal: formData.mainTerminal.trim().replace(/\s+/g, " "),
+    idManager: isValidUuid(formData.idManager) ? formData.idManager.trim() : null,
     operationalEmail: formData.operationalEmail.trim(),
     documents: mappedDocuments,
   };
@@ -57,8 +53,7 @@ export function buildVesselUpdatePayload(
   return {
     idCompany: vessel.idCompany ?? null,
     vesselName: editFormData.vesselName.trim(),
-    nationalRegistrationNumber:
-      editFormData.nationalRegistrationNumber.trim(),
+    nationalRegistrationNumber: editFormData.nationalRegistrationNumber.trim(),
     flag: editFormData.flag,
     imoNumber: editFormData.imoNumber.trim(),
     photoUrl: vessel.photoUrl ?? null,
@@ -70,17 +65,17 @@ export function buildVesselUpdatePayload(
     maxBeam: editFormData.maxBeam,
     operatingDraft: editFormData.operatingDraft,
     maxServiceSpeed: editFormData.maxServiceSpeed,
-    mainPropulsion: editFormData.mainPropulsion,
+    mainPropulsion: editFormData.mainPropulsion.trim(),
     maxPassengerCapacity: editFormData.maxPassengerCapacity,
     maxCrewCapacity: editFormData.maxCrewCapacity,
     lifeboatTotalCapacity: editFormData.lifeboatTotalCapacity,
-    classificationSociety: editFormData.classificationSociety,
+    classificationSociety: editFormData.classificationSociety.trim(),
     ismCertification: editFormData.ismCertification.trim(),
     certificateExpiryDate: editFormData.certificateExpiryDate || null,
     operationalStatus: editFormData.operationalStatus,
-    idHomePort: editFormData.idHomePort.trim() || null,
-    mainTerminal: editFormData.mainTerminal.trim(),
-    idManager: editFormData.idManager.trim() || null,
+    idHomePort: vessel.idHomePort && isValidUuid(vessel.idHomePort) ? vessel.idHomePort.trim() : null,
+    mainTerminal: editFormData.mainTerminal.trim().replace(/\s+/g, " "),
+    idManager: vessel.idManager && isValidUuid(vessel.idManager) ? vessel.idManager.trim() : null,
     operationalEmail: editFormData.operationalEmail.trim(),
     documents: [],
   };

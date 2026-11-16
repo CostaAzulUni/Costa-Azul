@@ -1,5 +1,7 @@
 import { Alert, Input, SectionCard, Select } from "../../../../components";
 import { CLASSIFICATION_SOCIETY_OPTIONS, OPERATIONAL_STATUS_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
+import { evaluateVesselCompliance } from "../utils";
+
 export interface VesselCertificationProps {
   formData: VesselFormData;
   errors: VesselFieldErrors;
@@ -14,6 +16,12 @@ export function VesselCertification({
   errors,
   onFieldChange,
 }: VesselCertificationProps) {
+  const compliance = evaluateVesselCompliance(formData.certificateExpiryDate);
+  const expiryHelper =
+    compliance.state === "expired" || compliance.state === "expiring_soon"
+      ? `${compliance.cardLabel} · alerta automático em até 30 dias.`
+      : "Não pode ser anterior ao ano de fabricação · alerta em até 30 dias.";
+
   return (
     <div className="vessel-step-stack">
       <SectionCard
@@ -41,6 +49,7 @@ export function VesselCertification({
             label="Certificação Código ISM"
             required
             size="lg"
+            maxLength={150}
             value={formData.ismCertification}
             errorMessage={errors.ismCertification}
             onChange={(e) => onFieldChange("ismCertification", e.target.value)}
@@ -58,7 +67,7 @@ export function VesselCertification({
             onChange={(e) =>
               onFieldChange("certificateExpiryDate", e.target.value)
             }
-            helperText="Alertas 60, 30 e 15 dias antes."
+            helperText={expiryHelper}
           />
         </div>
       </SectionCard>

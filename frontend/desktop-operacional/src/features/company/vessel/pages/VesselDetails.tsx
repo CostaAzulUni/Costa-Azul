@@ -10,7 +10,7 @@ import { VesselDeleteModal } from "../componets/VesselDeleteModal";
 import { VesselDetailsActionBar } from "../componets/VesselDetailsActionBar";
 import { VesselOverviewTab } from "../componets/VesselOverviewTab";
 import { VesselSpecificationsTab } from "../componets/VesselSpecificationsTab";
-import { formatMetric, INITIAL_VESSEL_FORM_DATA, mapVesselToFormData, validateAllVesselSteps, VESSEL_STEP_TO_DETAIL_TAB, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
+import { formatMetric, INITIAL_VESSEL_FORM_DATA, mapVesselToFormData, syncVesselErrors, validateAllVesselSteps, VESSEL_STEP_TO_DETAIL_TAB, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
 import { buildVesselUpdatePayload } from "../services/vesselPayload";
 import { buildStatutoryCertificateRows, buildVesselDetailTabs, calculateVesselDerivedMetrics, evaluateVesselCompliance, evaluateVesselProfileReadiness, filterStatutoryCertificateRows, formatFlagDisplay, getVesselBasePortDisplay, getVesselStatusDisplay, parseVesselApiError, resolveSafeVesselPhotoUrl, type CertificateFilterType, type TripFilterType, type VesselLocationState } from "../utils";
 
@@ -189,14 +189,11 @@ export function VesselDetails() {
     field: K,
     value: VesselFormData[K]
   ) => {
-    setEditFormData((prev) => ({ ...prev, [field]: value }));
-    if (editErrors[field]) {
-      setEditErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }
+    setEditFormData((prev) => {
+      const nextData = { ...prev, [field]: value };
+      setEditErrors((prevErrors) => syncVesselErrors(prevErrors, nextData));
+      return nextData;
+    });
   };
 
   const handleSaveEdit = async () => {

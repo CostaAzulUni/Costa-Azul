@@ -89,13 +89,14 @@ export function VesselBasicInfo({
             label="Número do registro nacional"
             required
             size="lg"
+            maxLength={30}
             value={formData.nationalRegistrationNumber}
             errorMessage={errors.nationalRegistrationNumber}
             onChange={(e) =>
               onFieldChange("nationalRegistrationNumber", e.target.value)
             }
-            placeholder="Ex.: 704512983"
-            helperText="Registro na Capitania dos Portos / Tribunal Marítimo."
+            placeholder="Ex.: BR-2022-008574"
+            helperText="Entre 5 e 30 caracteres (letras, números, ponto, hífen ou barra)."
           />
 
           <Select
@@ -122,8 +123,8 @@ export function VesselBasicInfo({
             onChange={(e) =>
               onFieldChange("imoNumber", e.target.value.replace(/\D/g, ""))
             }
-            placeholder="Ex.: 9876543"
-            helperText="7 dígitos numéricos · disponível na sua frota."
+            placeholder="Ex.: 9074729"
+            helperText="Informe exatamente 7 dígitos numéricos (com dígito verificador IMO)."
           />
 
           <Input

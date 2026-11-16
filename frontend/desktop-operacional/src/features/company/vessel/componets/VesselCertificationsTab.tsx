@@ -1,30 +1,8 @@
 import { useMemo } from "react";
-import {
-  Badge,
-  Button,
-  DataTable,
-  EmptyState,
-  FilterChip,
-  Input,
-  SectionCard,
-  Select,
-  type DataTableColumn,
-} from "../../../../components";
+import { Badge, Button, DataTable, EmptyState, FilterChip, Input, SectionCard, Select, type DataTableColumn } from "../../../../components";
 import type { VesselResponseDTO } from "../../../../services/vesselcreate";
-import {
-  CLASSIFICATION_SOCIETY_OPTIONS,
-  OPERATIONAL_STATUS_OPTIONS,
-  type VesselFieldErrors,
-  type VesselFieldKey,
-  type VesselFormData,
-} from "../form";
-import {
-  formatClassificationDisplay,
-  type CertificateFilterType,
-  type StatutoryCertificateRow,
-  type VesselComplianceEvaluation,
-  type VesselStatusDisplay,
-} from "../utils";
+import { CLASSIFICATION_SOCIETY_OPTIONS, OPERATIONAL_STATUS_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
+import { evaluateVesselCompliance, formatClassificationDisplay, type CertificateFilterType, type StatutoryCertificateRow, type VesselComplianceEvaluation, type VesselStatusDisplay } from "../utils";
 
 export interface VesselCertificationsTabProps {
   vessel: VesselResponseDTO;
@@ -104,6 +82,12 @@ export function VesselCertificationsTab({
     []
   );
 
+  const editCompliance = evaluateVesselCompliance(editFormData.certificateExpiryDate);
+  const expiryHelper =
+    editCompliance.state === "expired" || editCompliance.state === "expiring_soon"
+      ? `${editCompliance.cardLabel} · alerta automático em até 30 dias.`
+      : "Não pode ser anterior ao ano de fabricação · alerta em até 30 dias.";
+
   return (
     <div className="vessel-details-tab-stack">
       <SectionCard
@@ -145,6 +129,7 @@ export function VesselCertificationsTab({
               label="Certificação Código ISM"
               required
               size="md"
+              maxLength={150}
               value={editFormData.ismCertification}
               errorMessage={editErrors.ismCertification}
               onChange={(e) =>
@@ -163,6 +148,7 @@ export function VesselCertificationsTab({
               onChange={(e) =>
                 onEditFieldChange("certificateExpiryDate", e.target.value)
               }
+              helperText={expiryHelper}
             />
             <Select
               id="edit-operationalStatus"

@@ -1,23 +1,7 @@
-import {
-  Badge,
-  Button,
-  Input,
-  SectionCard,
-  Select,
-} from "../../../../components";
+import { Badge, Button, Input, SectionCard, Select } from "../../../../components";
 import type { VesselResponseDTO } from "../../../../services/vesselcreate";
-import {
-  formatMetric,
-  parseNullableNumber,
-  PROPULSION_TYPE_OPTIONS,
-  type VesselFieldErrors,
-  type VesselFieldKey,
-  type VesselFormData,
-} from "../form";
-import {
-  formatPropulsionDisplay,
-  type VesselDerivedMetrics,
-} from "../utils";
+import { formatMetric, parseNullableNumber, PROPULSION_TYPE_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
+import { formatPropulsionDisplay, type VesselDerivedMetrics } from "../utils";
 
 export interface VesselSpecificationsTabProps {
   vessel: VesselResponseDTO;
@@ -75,7 +59,8 @@ export function VesselSpecificationsTab({
                 required
                 size="md"
                 type="number"
-                min={0.01}
+                min={10}
+                max={450}
                 step="0.01"
                 unitSuffix="m"
                 value={editFormData.lengthOverall ?? ""}
@@ -83,13 +68,15 @@ export function VesselSpecificationsTab({
                 onChange={(e) =>
                   onEditFieldChange("lengthOverall", parseNullableNumber(e))
                 }
+                helperText="Informe um valor entre 10 e 450 m."
               />
               <Input
                 id="edit-maxBeam"
                 label="Boca máxima"
                 size="md"
                 type="number"
-                min={0.01}
+                min={3}
+                max={100}
                 step="0.01"
                 unitSuffix="m"
                 value={editFormData.maxBeam ?? ""}
@@ -97,6 +84,7 @@ export function VesselSpecificationsTab({
                 onChange={(e) =>
                   onEditFieldChange("maxBeam", parseNullableNumber(e))
                 }
+                helperText="Deve ser menor que o comprimento total (LOA)."
               />
               <Input
                 id="edit-operatingDraft"
@@ -104,7 +92,8 @@ export function VesselSpecificationsTab({
                 required
                 size="md"
                 type="number"
-                min={0.01}
+                min={0.5}
+                max={25}
                 step="0.01"
                 unitSuffix="m"
                 value={editFormData.operatingDraft ?? ""}
@@ -112,6 +101,7 @@ export function VesselSpecificationsTab({
                 onChange={(e) =>
                   onEditFieldChange("operatingDraft", parseNullableNumber(e))
                 }
+                helperText="Deve ser menor que a boca máxima (entre 0,5 e 25 m)."
               />
               <Input
                 id="edit-grossTonnage"
@@ -205,9 +195,11 @@ export function VesselSpecificationsTab({
                 label="Estaleiro construtor"
                 required
                 size="md"
+                maxLength={120}
                 value={editFormData.shipyard}
                 errorMessage={editErrors.shipyard}
                 onChange={(e) => onEditFieldChange("shipyard", e.target.value)}
+                helperText="Informe entre 2 e 120 caracteres."
               />
               <Select
                 id="edit-mainPropulsion"
@@ -226,7 +218,8 @@ export function VesselSpecificationsTab({
                 label="Velocidade máx. de serviço"
                 size="md"
                 type="number"
-                min={0.1}
+                min={1}
+                max={45}
                 step="0.1"
                 unitSuffix="nós"
                 value={editFormData.maxServiceSpeed ?? ""}
@@ -234,6 +227,7 @@ export function VesselSpecificationsTab({
                 onChange={(e) =>
                   onEditFieldChange("maxServiceSpeed", parseNullableNumber(e))
                 }
+                helperText="Informe um valor entre 1 e 45 nós."
               />
               <Input
                 id="edit-yearBuilt-spec"

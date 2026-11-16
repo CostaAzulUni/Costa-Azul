@@ -54,7 +54,8 @@ export function VesselTechnicalInfo({
             required
             size="lg"
             type="number"
-            min={0.01}
+            min={10}
+            max={450}
             step="0.01"
             unitSuffix="m"
             value={formData.lengthOverall ?? ""}
@@ -63,6 +64,7 @@ export function VesselTechnicalInfo({
               onFieldChange("lengthOverall", parseNullableNumber(e))
             }
             placeholder="294,0"
+            helperText="Informe um valor entre 10 e 450 m."
           />
 
           <Input
@@ -71,7 +73,8 @@ export function VesselTechnicalInfo({
             required
             size="lg"
             type="number"
-            min={0.01}
+            min={0.5}
+            max={25}
             step="0.01"
             unitSuffix="m"
             value={formData.operatingDraft ?? ""}
@@ -80,6 +83,7 @@ export function VesselTechnicalInfo({
               onFieldChange("operatingDraft", parseNullableNumber(e))
             }
             placeholder="8,4"
+            helperText="Deve ser menor que a boca máxima (entre 0,5 e 25 m)."
           />
 
           <Input
@@ -87,13 +91,15 @@ export function VesselTechnicalInfo({
             label="Boca máxima"
             size="lg"
             type="number"
-            min={0.01}
+            min={3}
+            max={100}
             step="0.01"
             unitSuffix="m"
             value={formData.maxBeam ?? ""}
             errorMessage={errors.maxBeam}
             onChange={(e) => onFieldChange("maxBeam", parseNullableNumber(e))}
             placeholder="32,2"
+            helperText="Deve ser menor que o comprimento total (LOA)."
           />
 
           <Input
@@ -121,10 +127,12 @@ export function VesselTechnicalInfo({
             label="Estaleiro construtor"
             required
             size="lg"
+            maxLength={120}
             value={formData.shipyard}
             errorMessage={errors.shipyard}
             onChange={(e) => onFieldChange("shipyard", e.target.value)}
             placeholder="Ex.: Fincantieri — Monfalcone, Itália"
+            helperText="Informe entre 2 e 120 caracteres."
           />
 
           <Input
@@ -132,7 +140,8 @@ export function VesselTechnicalInfo({
             label="Velocidade máxima de serviço"
             size="lg"
             type="number"
-            min={0.1}
+            min={1}
+            max={45}
             step="0.1"
             unitSuffix="nós"
             value={formData.maxServiceSpeed ?? ""}
@@ -141,6 +150,7 @@ export function VesselTechnicalInfo({
               onFieldChange("maxServiceSpeed", parseNullableNumber(e))
             }
             placeholder="21,5"
+            helperText="Informe um valor entre 1 e 45 nós."
           />
 
           <Select

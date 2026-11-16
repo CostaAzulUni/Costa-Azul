@@ -1,12 +1,26 @@
-import type { VesselFieldErrors, VesselFormData } from "./vesselForm.type";
+import { CLASSIFICATION_SOCIETY_OPTIONS } from "./vesselForm.constants";
+import type { VesselFieldErrors, VesselFieldKey, VesselFormData } from "./vesselForm.type";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const IMO_REGEX = /^\d{7}$/;
+const REG_NUMBER_REGEX = /^[A-Za-z0-9.\-/]+$/;
+const VALID_IACS = new Set(CLASSIFICATION_SOCIETY_OPTIONS.map((o) => String(o.value)));
 
 export function isValidUuid(value: string): boolean {
   return UUID_REGEX.test(value.trim());
+}
+
+export function isValidImoCheckDigit(imo: string): boolean {
+  if (!IMO_REGEX.test(imo)) return false;
+  const sum = [7, 6, 5, 4, 3, 2].reduce((acc, w, i) => acc + Number(imo[i]) * w, 0);
+  return sum % 10 === Number(imo[6]);
+}
+
+function hasMaxDecimals(value: number, max: number): boolean {
+  const decimals = String(value).split(".")[1];
+  return !decimals || decimals.length <= max;
 }
 
 /**
@@ -26,12 +40,13 @@ export function validateVesselStep(
       errors.vesselName = "O nome deve ter no máximo 150 caracteres.";
     }
 
-    if (!data.nationalRegistrationNumber.trim()) {
-      errors.nationalRegistrationNumber =
-        "Informe o número do registro nacional.";
-    } else if (data.nationalRegistrationNumber.trim().length > 150) {
-      errors.nationalRegistrationNumber =
-        "O registro deve ter no máximo 150 caracteres.";
+    const cleanReg = data.nationalRegistrationNumber.trim();
+    if (!cleanReg) {
+      errors.nationalRegistrationNumber = "Informe o número do registro nacional.";
+    } else if (!REG_NUMBER_REGEX.test(cleanReg)) {
+      errors.nationalRegistrationNumber = "Use apenas letras, números, ponto (.), hífen (-) ou barra (/).";
+    } else if (cleanReg.length < 5 || cleanReg.length > 30) {
+      errors.nationalRegistrationNumber = "O registro nacional deve ter entre 5 e 30 caracteres.";
     }
 
     if (!data.flag) {
@@ -43,6 +58,8 @@ export function validateVesselStep(
       errors.imoNumber = "Informe o número IMO.";
     } else if (!IMO_REGEX.test(cleanImo)) {
       errors.imoNumber = "O número IMO deve conter exatamente 7 dígitos numéricos.";
+    } else if (!isValidImoCheckDigit(cleanImo)) {
+      errors.imoNumber = "Número IMO inválido (dígito verificador incorreto).";
     }
 
     if (data.yearBuilt === null || Number.isNaN(data.yearBuilt)) {
@@ -61,6 +78,8 @@ export function validateVesselStep(
       errors.grossTonnage = "Informe a arqueação bruta (GT).";
     } else if (data.grossTonnage <= 0) {
       errors.grossTonnage = "A arqueação bruta deve ser maior que zero.";
+    } else if (!hasMaxDecimals(data.grossTonnage, 2)) {
+      errors.grossTonnage = "A arqueação bruta deve ter até 2 casas decimais.";
     } else if (data.grossTonnage > 99999999.99) {
       errors.grossTonnage = "Valor excede o limite permitido (99.999.999,99 GT).";
     }
@@ -69,24 +88,52 @@ export function validateVesselStep(
       errors.lengthOverall = "Informe o comprimento total (LOA).";
     } else if (data.lengthOverall <= 0) {
       errors.lengthOverall = "O comprimento total deve ser maior que zero.";
-    } else if (data.lengthOverall > 99999.99) {
-      errors.lengthOverall = "Valor excede o limite permitido (99.999,99 m).";
+    } else if (!hasMaxDecimals(data.lengthOverall, 2)) {
+      errors.lengthOverall = "O comprimento total deve ter até 2 casas decimais.";
+    } else if (data.lengthOverall < 10 || data.lengthOverall > 450) {
+      errors.lengthOverall = "O comprimento total (LOA) deve estar entre 10,00 m e 450,00 m.";
+    }
+
+    if (data.maxBeam !== null && !Number.isNaN(data.maxBeam)) {
+      if (data.maxBeam <= 0) {
+        errors.maxBeam = "A boca máxima deve ser maior que zero.";
+      } else if (!hasMaxDecimals(data.maxBeam, 2)) {
+        errors.maxBeam = "A boca máxima deve ter até 2 casas decimais.";
+      } else if (data.maxBeam < 3 || data.maxBeam > 100) {
+        errors.maxBeam = "A boca máxima deve estar entre 3,00 m e 100,00 m.";
+      } else if (
+        data.lengthOverall !== null &&
+        !Number.isNaN(data.lengthOverall) &&
+        data.lengthOverall > 0 &&
+        data.maxBeam >= data.lengthOverall
+      ) {
+        errors.maxBeam = "A boca máxima deve ser inferior ao comprimento total (LOA).";
+      }
     }
 
     if (data.operatingDraft === null || Number.isNaN(data.operatingDraft)) {
       errors.operatingDraft = "Informe o calado operacional.";
     } else if (data.operatingDraft <= 0) {
       errors.operatingDraft = "O calado operacional deve ser maior que zero.";
-    } else if (data.operatingDraft > 999.99) {
-      errors.operatingDraft = "Valor excede o limite permitido (999,99 m).";
-    }
-
-    if (data.maxBeam !== null && !Number.isNaN(data.maxBeam)) {
-      if (data.maxBeam <= 0) {
-        errors.maxBeam = "A boca máxima deve ser maior que zero.";
-      } else if (data.maxBeam > 9999.99) {
-        errors.maxBeam = "Valor excede o limite permitido (9.999,99 m).";
-      }
+    } else if (!hasMaxDecimals(data.operatingDraft, 2)) {
+      errors.operatingDraft = "O calado operacional deve ter até 2 casas decimais.";
+    } else if (data.operatingDraft < 0.5 || data.operatingDraft > 25) {
+      errors.operatingDraft = "O calado operacional deve estar entre 0,50 m e 25,00 m.";
+    } else if (
+      data.maxBeam !== null &&
+      !Number.isNaN(data.maxBeam) &&
+      data.maxBeam > 0 &&
+      data.operatingDraft >= data.maxBeam
+    ) {
+      errors.operatingDraft = "O calado operacional deve ser inferior à boca máxima.";
+    } else if (
+      (data.maxBeam === null || Number.isNaN(data.maxBeam)) &&
+      data.lengthOverall !== null &&
+      !Number.isNaN(data.lengthOverall) &&
+      data.lengthOverall > 0 &&
+      data.operatingDraft >= data.lengthOverall
+    ) {
+      errors.operatingDraft = "O calado operacional deve ser inferior ao comprimento total (LOA).";
     }
 
     if (
@@ -95,24 +142,30 @@ export function validateVesselStep(
     ) {
       if (data.deadweightTonnage <= 0) {
         errors.deadweightTonnage = "O porte bruto deve ser maior que zero.";
+      } else if (!hasMaxDecimals(data.deadweightTonnage, 2)) {
+        errors.deadweightTonnage = "O porte bruto deve ter até 2 casas decimais.";
       } else if (data.deadweightTonnage > 99999999.99) {
-        errors.deadweightTonnage =
-          "Valor excede o limite permitido (99.999.999,99 t).";
+        errors.deadweightTonnage = "Valor excede o limite permitido (99.999.999,99 t).";
       }
     }
 
-    if (!data.shipyard.trim()) {
+    const cleanShipyard = data.shipyard.trim();
+    if (!cleanShipyard) {
       errors.shipyard = "Informe o estaleiro construtor.";
-    } else if (data.shipyard.trim().length > 150) {
-      errors.shipyard = "O estaleiro deve ter no máximo 150 caracteres.";
+    } else if (cleanShipyard.length < 2 || cleanShipyard.length > 120) {
+      errors.shipyard = "O estaleiro construtor deve ter entre 2 e 120 caracteres.";
     }
 
     if (data.maxServiceSpeed !== null && !Number.isNaN(data.maxServiceSpeed)) {
-      if (data.maxServiceSpeed <= 0) {
-        errors.maxServiceSpeed = "A velocidade máxima deve ser maior que zero.";
-      } else if (data.maxServiceSpeed > 999.9) {
-        errors.maxServiceSpeed = "Valor excede o limite permitido (999,9 nós).";
+      if (data.maxServiceSpeed < 1 || data.maxServiceSpeed > 45) {
+        errors.maxServiceSpeed = "A velocidade de serviço deve estar entre 1,0 e 45,0 nós.";
+      } else if (!hasMaxDecimals(data.maxServiceSpeed, 1)) {
+        errors.maxServiceSpeed = "A velocidade de serviço deve ter até 1 casa decimal.";
       }
+    }
+
+    if (data.mainPropulsion.trim().length > 150) {
+      errors.mainPropulsion = "A propulsão principal deve ter no máximo 150 caracteres.";
     }
   }
 
@@ -121,14 +174,12 @@ export function validateVesselStep(
       data.maxPassengerCapacity === null ||
       Number.isNaN(data.maxPassengerCapacity)
     ) {
-      errors.maxPassengerCapacity =
-        "Informe a capacidade máxima de passageiros.";
+      errors.maxPassengerCapacity = "Informe a capacidade máxima de passageiros.";
     } else if (
       !Number.isInteger(data.maxPassengerCapacity) ||
       data.maxPassengerCapacity <= 0
     ) {
-      errors.maxPassengerCapacity =
-        "Informe um número inteiro maior que zero.";
+      errors.maxPassengerCapacity = "Informe um número inteiro maior que zero.";
     }
 
     if (data.maxCrewCapacity === null || Number.isNaN(data.maxCrewCapacity)) {
@@ -137,22 +188,19 @@ export function validateVesselStep(
       !Number.isInteger(data.maxCrewCapacity) ||
       data.maxCrewCapacity < 0
     ) {
-      errors.maxCrewCapacity =
-        "Informe um número inteiro igual ou maior que zero.";
+      errors.maxCrewCapacity = "Informe um número inteiro igual ou maior que zero.";
     }
 
     if (
       data.lifeboatTotalCapacity === null ||
       Number.isNaN(data.lifeboatTotalCapacity)
     ) {
-      errors.lifeboatTotalCapacity =
-        "Informe a capacidade total de botes salva-vidas.";
+      errors.lifeboatTotalCapacity = "Informe a capacidade total de botes salva-vidas.";
     } else if (
       !Number.isInteger(data.lifeboatTotalCapacity) ||
       data.lifeboatTotalCapacity <= 0
     ) {
-      errors.lifeboatTotalCapacity =
-        "A capacidade de botes deve ser um inteiro maior que zero.";
+      errors.lifeboatTotalCapacity = "A capacidade de botes deve ser um inteiro maior que zero.";
     } else {
       const totalAboard =
         (data.maxPassengerCapacity ?? 0) + (data.maxCrewCapacity ?? 0);
@@ -163,19 +211,33 @@ export function validateVesselStep(
   }
 
   if (stepIndex === 3) {
-    if (!data.classificationSociety) {
+    const cleanSociety = data.classificationSociety.trim();
+    if (!cleanSociety) {
       errors.classificationSociety = "Selecione a classificadora naval (IACS).";
+    } else if (cleanSociety.length > 60 || !VALID_IACS.has(cleanSociety)) {
+      errors.classificationSociety = "Selecione uma sociedade classificadora membro da IACS válida.";
     }
 
     if (!data.ismCertification.trim()) {
       errors.ismCertification = "Informe a certificação Código ISM.";
     } else if (data.ismCertification.trim().length > 150) {
-      errors.ismCertification =
-        "A certificação ISM deve ter no máximo 150 caracteres.";
+      errors.ismCertification = "A certificação ISM deve ter no máximo 150 caracteres.";
     }
 
     if (!data.certificateExpiryDate) {
       errors.certificateExpiryDate = "Informe a data de validade do certificado.";
+    } else {
+      const expiryYear = Number(data.certificateExpiryDate.split("-")[0]);
+      if (Number.isNaN(Date.parse(data.certificateExpiryDate)) || Number.isNaN(expiryYear)) {
+        errors.certificateExpiryDate = "Informe uma data de validade válida.";
+      } else if (
+        data.yearBuilt !== null &&
+        !Number.isNaN(data.yearBuilt) &&
+        data.yearBuilt >= 1900 &&
+        expiryYear < data.yearBuilt
+      ) {
+        errors.certificateExpiryDate = `A validade não pode ser anterior ao ano de fabricação (${data.yearBuilt}).`;
+      }
     }
 
     if (!data.operationalStatus) {
@@ -185,25 +247,21 @@ export function validateVesselStep(
 
   if (stepIndex === 4) {
     if (data.idHomePort.trim() && !isValidUuid(data.idHomePort)) {
-      errors.idHomePort =
-        "O identificador do porto base deve ser um UUID válido.";
+      errors.idHomePort = "O identificador do porto base deve ser um UUID válido.";
     }
 
-    if (data.mainTerminal.trim().length > 150) {
-      errors.mainTerminal =
-        "O terminal principal deve ter no máximo 150 caracteres.";
+    if (data.mainTerminal.trim().replace(/\s+/g, " ").length > 100) {
+      errors.mainTerminal = "O terminal principal deve ter no máximo 100 caracteres.";
     }
 
     if (data.idManager.trim() && !isValidUuid(data.idManager)) {
-      errors.idManager =
-        "O identificador do gerente deve ser um UUID válido.";
+      errors.idManager = "O identificador do gerente deve ser um UUID válido.";
     }
 
     if (!data.operationalEmail.trim()) {
       errors.operationalEmail = "Informe o e-mail operacional da embarcação.";
     } else if (data.operationalEmail.trim().length > 255) {
-      errors.operationalEmail =
-        "O e-mail operacional deve ter no máximo 255 caracteres.";
+      errors.operationalEmail = "O e-mail operacional deve ter no máximo 255 caracteres.";
     } else if (!EMAIL_REGEX.test(data.operationalEmail.trim())) {
       errors.operationalEmail = "Informe um endereço de e-mail válido.";
     }
@@ -268,5 +326,20 @@ export function validateAllVesselSteps(data: VesselFormData): {
   }
 
   return { allErrors, firstInvalidStep };
+}
+
+export function syncVesselErrors(
+  prevErrors: VesselFieldErrors,
+  data: VesselFormData
+): VesselFieldErrors {
+  const { allErrors } = validateAllVesselSteps(data);
+  const nextErrors: VesselFieldErrors = {};
+  for (const key of Object.keys(data) as VesselFieldKey[]) {
+    const isFilled = data[key] !== null && String(data[key]).trim() !== "";
+    if (allErrors[key] && (key in prevErrors || isFilled)) {
+      nextErrors[key] = allErrors[key];
+    }
+  }
+  return nextErrors;
 }
 
