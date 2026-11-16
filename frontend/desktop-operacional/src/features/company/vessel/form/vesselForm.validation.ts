@@ -245,3 +245,28 @@ export function getCompletedVesselStepsCount(data: VesselFormData): number {
 export function areAllVesselStepsValid(data: VesselFormData): boolean {
   return getCompletedVesselStepsCount(data) === 5;
 }
+
+/**
+ * Executa a validação de todas as etapas obrigatórias (0 a 4), consolidando os erros
+ * e identificando o índice da primeira etapa inválida.
+ */
+export function validateAllVesselSteps(data: VesselFormData): {
+  allErrors: VesselFieldErrors;
+  firstInvalidStep: number | null;
+} {
+  let allErrors: VesselFieldErrors = {};
+  let firstInvalidStep: number | null = null;
+
+  for (let step = 0; step <= 4; step += 1) {
+    const stepErrors = validateVesselStep(step, data);
+    if (Object.keys(stepErrors).length > 0) {
+      allErrors = { ...allErrors, ...stepErrors };
+      if (firstInvalidStep === null) {
+        firstInvalidStep = step;
+      }
+    }
+  }
+
+  return { allErrors, firstInvalidStep };
+}
+

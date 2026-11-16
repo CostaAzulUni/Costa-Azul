@@ -23,7 +23,7 @@ export function VesselSummarySidebar({
 
   return (
     <aside className="vessel-side-column" aria-label="Resumo do cadastro">
-      {/* Card · Resumo (#5932:32141) */}
+      {/* Card · Resumo  */}
       <div className="vessel-summary-card">
         <div className="vessel-summary-card__banner">
           {photoPreview ? (
@@ -75,7 +75,7 @@ export function VesselSummarySidebar({
         </div>
       </div>
 
-      {/* Card · Calculados (#5932:32152) */}
+      {/* Card · Calculados */}
       <div className="vessel-calculated-card">
         <div className="vessel-calculated-card__header">
           <i className="pi pi-info-circle" aria-hidden="true" />

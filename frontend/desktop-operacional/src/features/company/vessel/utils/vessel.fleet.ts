@@ -1,7 +1,16 @@
 import type { SelectOption } from "../../../../components";
 import type { VesselSummaryDTO } from "../../../../services/vesselcreate";
 import { evaluateVesselCompliance } from "./vessel.compliance";
-import type { FleetKpiSummary } from "./vessel.type";
+import {
+  VESSEL_COMPLIANCE_FILTER_OPTIONS,
+  VESSEL_STATUS_FILTER_OPTIONS,
+} from "./vessel.constants";
+import type {
+  FleetComplianceKpiPresentation,
+  FleetKpiSummary,
+  VesselComplianceFilterValue,
+  VesselStatusFilterValue,
+} from "./vessel.type";
 
 /**
  * Retorna a identificação legível do porto base / terminal da embarcação.
@@ -110,3 +119,76 @@ export function calculateFleetKpis(
     totalComplianceAlerts,
   };
 }
+
+/**
+ * Prepara os textos e tom visual do KPI de alertas de conformidade da frota.
+ */
+export function getFleetComplianceKpiPresentation(
+  fleetKpis: FleetKpiSummary
+): FleetComplianceKpiPresentation {
+  const tone =
+    fleetKpis.expiredCertificatesCount > 0
+      ? "error"
+      : fleetKpis.expiringSoonCertificatesCount > 0
+        ? "warning"
+        : fleetKpis.totalCount > 0 && fleetKpis.missingCertificatesCount === 0
+          ? "success"
+          : "neutral";
+
+  const highlightText =
+    fleetKpis.totalCount === 0
+      ? "Sem registros"
+      : fleetKpis.totalComplianceAlerts > 0
+        ? `${fleetKpis.expiredCertificatesCount} vencido(s) · ${fleetKpis.expiringSoonCertificatesCount} em até 30d`
+        : fleetKpis.missingCertificatesCount > 0
+          ? `${fleetKpis.missingCertificatesCount} sem validade`
+          : "Conformidade em dia";
+
+  const detailText =
+    fleetKpis.missingCertificatesCount > 0
+      ? `${fleetKpis.missingCertificatesCount} certificado(s) sem data informada`
+      : "Monitoramento da validade do certificado ISM";
+
+  return {
+    tone,
+    highlightText,
+    detailText,
+  };
+}
+
+/**
+ * Monta descrição dos filtros ativos para o estado vazio de busca (Figma N · 03 #5932:32022).
+ */
+export function buildActiveFilterSummaryText(params: {
+  searchQuery: string;
+  statusFilter: VesselStatusFilterValue;
+  basePortFilter: string;
+  complianceFilter: VesselComplianceFilterValue;
+}): string {
+  const { searchQuery, statusFilter, basePortFilter, complianceFilter } =
+    params;
+  const parts: string[] = [];
+
+  if (searchQuery.trim()) {
+    parts.push(`Busca = "${searchQuery.trim()}"`);
+  }
+  if (statusFilter !== "ALL") {
+    const label =
+      VESSEL_STATUS_FILTER_OPTIONS.find((o) => o.value === statusFilter)
+        ?.label ?? statusFilter;
+    parts.push(`Status = ${label}`);
+  }
+  if (basePortFilter !== "ALL") {
+    parts.push(`Porto base = ${basePortFilter}`);
+  }
+  if (complianceFilter !== "ALL") {
+    const label =
+      VESSEL_COMPLIANCE_FILTER_OPTIONS.find(
+        (o) => o.value === complianceFilter
+      )?.label ?? complianceFilter;
+    parts.push(`Conformidade = ${label}`);
+  }
+
+  return parts.join(", ");
+}
+

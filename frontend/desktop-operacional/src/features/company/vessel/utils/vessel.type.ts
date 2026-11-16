@@ -1,4 +1,7 @@
 import type { BadgeTone } from "../../../../components";
+import type { VesselResponseDTO } from "../../../../services/vesselcreate";
+
+export type FleetViewMode = "grid" | "list";
 
 export type VesselStatusFilterValue =
   | "ALL"
@@ -50,6 +53,11 @@ export interface FleetKpiSummary {
   totalComplianceAlerts: number;
 }
 
+export interface FleetComplianceKpiPresentation {
+  tone: "error" | "warning" | "success" | "neutral";
+  highlightText: string;
+  detailText: string;
+}
 
 export interface VesselProfileReadinessItem {
   id: string;
@@ -65,3 +73,41 @@ export interface VesselProfileReadiness {
   totalCount: number;
   items: VesselProfileReadinessItem[];
 }
+
+export interface VesselLocationState {
+  vessel?: VesselResponseDTO;
+  updatedToast?: boolean;
+}
+
+export interface StatutoryCertificateRow {
+  id: string;
+  certificateName: string;
+  code: string;
+  issuer: string;
+  expiryFormatted: string;
+  statusLabel: string;
+  badgeTone: BadgeTone;
+  hasAlert: boolean;
+}
+
+export type CertificateFilterType = "ALL" | "ALERT" | "VALID";
+export type TripFilterType = "ALL" | "SCHEDULED" | "COMPLETED";
+
+export interface PrototypeSectionSummary {
+  code: string;
+  tabId: string;
+  title: string;
+  description: string;
+  badgeText: string;
+}
+
+export interface VesselDerivedMetrics {
+  loaBeamRatio: string;
+  gtPerPassenger: string;
+  vesselAgeText: string;
+  totalAboard: number;
+  lifeboatCap: number;
+  lifeboatCoveragePct: number | null;
+}
+
+

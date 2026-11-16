@@ -57,6 +57,16 @@ export const NEXT_STEP_BUTTON_LABELS: Record<number, string> = {
   4: "Revisar cadastro",
 };
 
+// Mapeia a etapa de validação (0 a 4) para a aba correspondente na ficha de detalhes da embarcação
+export const VESSEL_STEP_TO_DETAIL_TAB: Record<number, string> = {
+  0: "visao-geral",
+  1: "especificacoes",
+  2: "capacidade",
+  3: "certificacoes",
+  4: "visao-geral",
+};
+
+
 // opções de bandeira para o campo de seleção de bandeira da embarcação, incluindo o nome do país e o código ISO correspondente.
 export const VESSEL_FLAG_OPTIONS: SelectOption[] = [
   { label: "Brasil (BRA)", value: "BR" },
