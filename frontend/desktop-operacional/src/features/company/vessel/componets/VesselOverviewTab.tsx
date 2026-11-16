@@ -1,7 +1,7 @@
 import { Alert, Badge, Button, Input, SectionCard, Select } from "../../../../components";
 import type { VesselResponseDTO } from "../../../../services/vesselcreate";
-import { parseNullableNumber, VESSEL_FLAG_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
-import { formatClassificationDisplay, formatDateTimeBr, formatFlagDisplay, type VesselComplianceEvaluation, type VesselProfileReadiness } from "../utils";
+import { OPERATIONAL_STATUS_OPTIONS, parseNullableNumber, VESSEL_FLAG_OPTIONS, type VesselFieldErrors, type VesselFieldKey, type VesselFormData } from "../form";
+import { formatClassificationDisplay, formatDateTimeBr, formatFlagDisplay, getVesselStatusDisplay, type VesselComplianceEvaluation, type VesselProfileReadiness } from "../utils";
 
 export interface VesselOverviewTabProps {
   vessel: VesselResponseDTO;
@@ -29,6 +29,8 @@ export function VesselOverviewTab({
   onEditFieldChange,
   onNavigateTab,
 }: VesselOverviewTabProps) {
+  const statusDisplay = getVesselStatusDisplay(vessel.operationalStatus);
+
   return (
     <div className="vessel-details-tab-stack">
       {(compliance.state === "expired" ||
@@ -152,6 +154,21 @@ export function VesselOverviewTab({
                   value={vessel.companyName || "—"}
                   helperText="Calculado pelo sistema."
                 />
+                <Select
+                  id="edit-overview-operationalStatus"
+                  label="Status operacional"
+                  required
+                  size="md"
+                  value={editFormData.operationalStatus}
+                  errorMessage={editErrors.operationalStatus}
+                  options={OPERATIONAL_STATUS_OPTIONS.map((opt) => ({
+                    label: opt.label,
+                    value: opt.value,
+                  }))}
+                  onChange={(e) =>
+                    onEditFieldChange("operationalStatus", e.target.value)
+                  }
+                />
               </div>
             ) : (
               <dl className="vessel-details-dl-grid vessel-details-dl-grid--3cols">
@@ -179,6 +196,14 @@ export function VesselOverviewTab({
                   <dt>Ano de fabricação</dt>
                   <dd className="vessel-details-tabular">
                     {vessel.yearBuilt ?? "—"}
+                  </dd>
+                </div>
+                <div className="vessel-details-dl-item">
+                  <dt>Status operacional</dt>
+                  <dd>
+                    <Badge tone={statusDisplay.tone} size="sm" dot>
+                      {statusDisplay.label}
+                    </Badge>
                   </dd>
                 </div>
                 <div className="vessel-details-dl-item">

@@ -114,6 +114,12 @@ export const OPERATIONAL_STATUS_OPTIONS: OperationalStatusCardOption[] = [
     dotColor: "var(--color-warning-500)",
   },
   {
+    value: "DRY_DOCK",
+    label: "Doca seca",
+    description: "Em docagem ou revisão estrutural.",
+    dotColor: "var(--color-warning-500)",
+  },
+  {
     value: "INACTIVE",
     label: "Fora de serviço",
     description: "Cadastrada, mas fora da frota ativa.",
